@@ -22,7 +22,7 @@
         #searchContainer {
             margin-top: 15px;
             margin-bottom: 10px;
-            display: none; /* hidden until a sheet loads */
+            display: none;
         }
 
         #searchBox {
@@ -48,6 +48,15 @@
             background: #f0f0f0; 
             font-weight: bold;
         }
+
+        /* Row colors */
+        .day-m  { background-color: #d6eaff; }
+        .day-tu { background-color: #d9f7d9; }
+        .day-w  { background-color: #fff9cc; }
+        .day-th { background-color: #ffe6cc; }
+        .day-f  { background-color: #f0e6ff; }
+        .day-sa { background-color: #ffe0eb; }
+        .day-su { background-color: #e6e6e6; }
     </style>
 </head>
 <body>
@@ -57,7 +66,6 @@
     <label>Select Instructor:</label>
     <select id="sheetDropdown"></select>
 
-    <!-- Search bar appears ONLY after a sheet loads -->
     <div id="searchContainer">
         <input type="text" id="searchBox" placeholder="Search this report...">
     </div>
@@ -65,7 +73,7 @@
     <table id="dataTable"></table>
 
     <script>
-        // Load sheet names from backend
+        // Load sheet names
         fetch("/api/get-sheets")
             .then(response => response.json())
             .then(data => {
@@ -80,13 +88,12 @@
                     .map(s => `<option value="${s}">${s}</option>`)
                     .join("");
 
-                // Auto-load first sheet
                 if (data.sheets.length > 0) {
                     loadSheet(data.sheets[0]);
                 }
             });
 
-        // Load sheet data into table
+        // Load sheet data
         function loadSheet(sheetName) {
             fetch(`/api/get-sheet-data/${sheetName}`)
                 .then(response => response.json())
@@ -98,18 +105,42 @@
                         return;
                     }
 
-                    // Show search bar now that data exists
                     document.getElementById("searchContainer").style.display = "block";
 
-                    let html = "<tr>" + data.columns.map(c => `<th>${c}</th>`).join("") + "</tr>";
+                    // Identify helper column indexes
+                    const dayCodeIndex = data.columns.indexOf("__day_code");
+                    const daySortIndex = data.columns.indexOf("__day_sort");
+                    const dayColorIndex = data.columns.indexOf("__day_color");
 
+                    // Sort rows by __day_sort
+                    data.rows.sort((a, b) => {
+                        return Number(a[daySortIndex]) - Number(b[daySortIndex]);
+                    });
+
+                    // Build table header (hide helper columns)
+                    let html = "<tr>";
+                    data.columns.forEach((c, i) => {
+                        if (c.startsWith("__")) return; // hide helper columns
+                        html += `<th>${c}</th>`;
+                    });
+                    html += "</tr>";
+
+                    // Build table rows
                     data.rows.forEach(row => {
-                        html += "<tr>" + row.map(cell => `<td>${cell}</td>`).join("") + "</tr>";
+                        const colorClass = row[dayColorIndex];
+
+                        html += `<tr class="${colorClass}">`;
+
+                        row.forEach((cell, i) => {
+                            if (data.columns[i].startsWith("__")) return; // hide helper columns
+                            html += `<td>${cell}</td>`;
+                        });
+
+                        html += "</tr>";
                     });
 
                     table.innerHTML = html;
 
-                    // Reapply search filter after loading new sheet
                     applySearchFilter();
                 });
         }
@@ -120,7 +151,6 @@
             const table = document.getElementById("dataTable");
             const rows = table.getElementsByTagName("tr");
 
-            // Skip header row
             for (let i = 1; i < rows.length; i++) {
                 const cells = rows[i].getElementsByTagName("td");
                 let match = false;
@@ -136,10 +166,8 @@
             }
         }
 
-        // Trigger search on typing
         document.getElementById("searchBox").addEventListener("input", applySearchFilter);
 
-        // Reload sheet when dropdown changes
         document.getElementById("sheetDropdown").addEventListener("change", function () {
             loadSheet(this.value);
         });

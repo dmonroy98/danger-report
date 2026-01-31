@@ -12,9 +12,8 @@ DROPBOX_REFRESH_TOKEN = os.getenv("DROPBOX_REFRESH_TOKEN")
 DROPBOX_APP_KEY = os.getenv("DROPBOX_APP_KEY")
 DROPBOX_APP_SECRET = os.getenv("DROPBOX_APP_SECRET")
 
-# Path inside your App Folder (correct format)
+# Path inside your App Folder
 DROPBOX_FILE_PATH = "/Danger Report Master.xlsm"
-
 
 # Day mapping for sorting
 DAY_ORDER = {
@@ -27,6 +26,17 @@ DAY_ORDER = {
     "Su": 7
 }
 
+# Row color classes
+DAY_COLOR = {
+    "M": "day-m",
+    "Tu": "day-tu",
+    "W": "day-w",
+    "Th": "day-th",
+    "F": "day-f",
+    "Sa": "day-sa",
+    "Su": "day-su"
+}
+
 
 def extract_day_code(class_name):
     """Extracts the last token from Class Name (e.g., 'Sa', 'M', 'Tu')."""
@@ -36,15 +46,11 @@ def extract_day_code(class_name):
 
 
 def load_excel_from_dropbox():
-    """
-    Downloads the Excel file from Dropbox using refresh-token authentication
-    and returns an openpyxl workbook object.
-    """
+    """Downloads the Excel file from Dropbox using refresh-token authentication."""
     try:
         print("DEBUG: Using refresh-token Dropbox auth")
         print("DEBUG: Attempting to download:", DROPBOX_FILE_PATH)
 
-        # Dropbox client using permanent refresh-token flow
         dbx = dropbox.Dropbox(
             oauth2_refresh_token=DROPBOX_REFRESH_TOKEN,
             app_key=DROPBOX_APP_KEY,
@@ -74,10 +80,7 @@ def danger_report():
 
 @app.route("/api/get-sheets")
 def get_sheets():
-    """
-    Returns all sheet names EXCEPT any sheet containing 'combined'
-    (case-insensitive).
-    """
+    """Returns all sheet names except those containing 'combined'."""
     try:
         wb = load_excel_from_dropbox()
 
@@ -93,11 +96,7 @@ def get_sheets():
 
 @app.route("/api/get-sheet-data/<sheet_name>")
 def get_sheet_data(sheet_name):
-    """
-    Returns the data from a specific sheet as JSON, including:
-    - __day_code (M, Tu, W, Th, F, Sa, Su)
-    - __day_sort (1–7)
-    """
+    """Returns sheet data + day code + sort order + color class."""
     try:
         wb = load_excel_from_dropbox()
         ws = wb[sheet_name]
@@ -108,13 +107,15 @@ def get_sheet_data(sheet_name):
         df.columns = df.iloc[0]
         df = df[1:]
 
-        # Add day code + numeric sort order
+        # Add day code, sort order, and color
         if "Class Name" in df.columns:
             df["__day_code"] = df["Class Name"].apply(extract_day_code)
             df["__day_sort"] = df["__day_code"].map(DAY_ORDER).fillna(999)
+            df["__day_color"] = df["__day_code"].map(DAY_COLOR).fillna("")
         else:
             df["__day_code"] = ""
             df["__day_sort"] = 999
+            df["__day_color"] = ""
 
         result = {
             "columns": list(df.columns),
