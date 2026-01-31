@@ -1,11 +1,33 @@
+import os
 import pandas as pd
 from flask import Flask, render_template, jsonify
 from openpyxl import load_workbook
+from io import BytesIO
+import dropbox
 
 app = Flask(__name__)
 
-# Path to your Excel file
-EXCEL_PATH = r"C:\Users\DiegoMonroy\Ldesoccer Dropbox\Operations\Drop Danger\Danger Report Master.xlsm"
+# Dropbox settings
+DROPBOX_TOKEN = os.getenv("DROPBOX_TOKEN")  # Stored securely in Render
+DROPBOX_FILE_PATH = "/Operations/Drop Danger/Danger-Report-Master.xlsm"  # Path inside Dropbox
+
+
+def load_excel_from_dropbox():
+    """
+    Downloads the Excel file from Dropbox using the Dropbox API
+    and returns an openpyxl workbook object.
+    """
+    try:
+        dbx = dropbox.Dropbox(DROPBOX_TOKEN)
+
+        metadata, res = dbx.files_download(DROPBOX_FILE_PATH)
+        file_bytes = res.content
+
+        wb = load_workbook(filename=BytesIO(file_bytes), data_only=True)
+        return wb
+
+    except Exception as e:
+        raise RuntimeError(f"Dropbox download failed: {str(e)}")
 
 
 @app.route("/")
@@ -25,12 +47,9 @@ def get_sheets():
     (case-insensitive, handles trailing spaces, hidden characters, etc.)
     """
     try:
-        wb = load_workbook(EXCEL_PATH, data_only=True)
+        wb = load_excel_from_dropbox()
 
-        # Normalize sheet names
         sheet_names = [s.strip() for s in wb.sheetnames]
-
-        # Remove ANY sheet containing "combined"
         filtered = [s for s in sheet_names if "combined" not in s.lower()]
 
         return jsonify({"sheets": filtered})
@@ -45,14 +64,24 @@ def get_sheet_data(sheet_name):
     Returns the data from a specific sheet as JSON.
     """
     try:
-        df = pd.read_excel(EXCEL_PATH, sheet_name=sheet_name)
+        # Load workbook from Dropbox
+        wb = load_excel_from_dropbox()
 
-        data = {
+        # Convert sheet to DataFrame
+        ws = wb[sheet_name]
+        data = ws.values
+        df = pd.DataFrame(data)
+
+        # First row becomes header
+        df.columns = df.iloc[0]
+        df = df[1:]
+
+        result = {
             "columns": list(df.columns),
             "rows": df.fillna("").values.tolist()
         }
 
-        return jsonify(data)
+        return jsonify(result)
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
