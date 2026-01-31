@@ -1,360 +1,146 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-    <title>Danger Report</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            padding: 20px;
-            background: #F5F5F7;
-            color: #1C1C1E;
-            text-align: center;
-        }
-
-        /* Frosted glass header */
-        h1 {
-            margin-bottom: 20px;
-            font-weight: 600;
-            padding: 12px 20px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.55);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-            display: inline-block;
-        }
-
-        /* Logo */
-        #logo {
-            width: 120px;
-            opacity: 0.9;
-            margin-bottom: 15px;
-        }
-
-        /* Landing message */
-        #landingMessage {
-            margin-top: 40px;
-            color: #3A3A3C;
-            font-size: 18px;
-        }
-
-        /* Spotlight-style dropdown container */
-        #dropdownContainer {
-            position: relative;
-            width: 300px;
-            margin: 0 auto;
-            text-align: left;
-        }
-
-        /* Spotlight search input */
-        #instructorSearch {
-            width: 100%;
-            padding: 10px 14px;
-            border-radius: 12px;
-            border: 1px solid #C7C7CC;
-            background: #FFFFFF;
-            font-size: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-        }
-
-        /* Dropdown list */
-        #dropdownList {
-            position: absolute;
-            top: 48px;
-            width: 100%;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-            max-height: 220px;
-            overflow-y: auto;
-            display: none;
-            z-index: 10;
-        }
-
-        .dropdown-item {
-            padding: 10px 14px;
-            cursor: pointer;
-            transition: background 0.15s ease;
-        }
-
-        .dropdown-item:hover,
-        .dropdown-item.active {
-            background: rgba(0,0,0,0.06);
-        }
-
-        /* Search bar above table */
-        #searchContainer {
-            margin-top: 15px;
-            margin-bottom: 10px;
-            display: none;
-            text-align: left;
-        }
-
-        #searchBox {
-            padding: 8px 12px;
-            width: 260px;
-            font-size: 14px;
-            border-radius: 8px;
-            border: 1px solid #C7C7CC;
-            background: #FFFFFF;
-        }
-
-        /* Apple-style table */
-        table {
-            border-collapse: separate;
-            border-spacing: 0;
-            width: 100%;
-            margin-top: 15px;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-            opacity: 0;
-            transition: opacity 0.35s ease;
-            display: none;
-        }
-
-        table.loaded {
-            opacity: 1;
-        }
-
-        table.fade-out {
-            opacity: 0;
-        }
-
-        th {
-            background: #F2F2F7;
-            font-weight: 600;
-            padding: 12px;
-            border-bottom: 1px solid #E5E5EA;
-            text-align: left;
-        }
-
-        td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #E5E5EA;
-            transition: background-color 0.2s ease;
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        tr:hover td {
-            background-color: rgba(0,0,0,0.04);
-        }
-
-        /* Ultra-soft Apple-inspired row colors */
-        .day-m  { background-color: #F7F7F8; }
-        .day-tu { background-color: #E7EEF8; }
-        .day-w  { background-color: #E9F5EF; }
-        .day-th { background-color: #FAF4E3; }
-        .day-f  { background-color: #F8EDEF; }
-        .day-sa { background-color: #F1EEFA; }
-        .day-su { background-color: #F7EDE3; }
-
-        /* DARK MODE */
-        @media (prefers-color-scheme: dark) {
-            body {
-                background: #1C1C1E;
-                color: #F2F2F7;
-            }
-
-            h1 {
-                background: rgba(40,40,40,0.55);
-                box-shadow: 0 4px 14px rgba(0,0,0,0.4);
-            }
-
-            #landingMessage {
-                color: #D1D1D6;
-            }
-
-            #instructorSearch,
-            #searchBox {
-                background: #2C2C2E;
-                color: #F2F2F7;
-                border: 1px solid #3A3A3C;
-            }
-
-            #dropdownList {
-                background: #2C2C2E;
-                box-shadow: 0 6px 18px rgba(0,0,0,0.6);
-            }
-
-            .dropdown-item:hover,
-            .dropdown-item.active {
-                background: rgba(255,255,255,0.08);
-            }
-
-            table {
-                background: #2C2C2E;
-                box-shadow: 0 4px 14px rgba(0,0,0,0.5);
-            }
-
-            th {
-                background: #3A3A3C;
-                border-bottom: 1px solid #48484A;
-            }
-
-            td {
-                border-bottom: 1px solid #3A3A3C;
-            }
-
-            tr:hover td {
-                background-color: rgba(255,255,255,0.06);
-            }
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Danger Report</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    /* Minimal page-specific tweaks; keep most styles in style.css */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .btn {
+      background: transparent;
+      border: 1px solid rgba(0,0,0,0.08);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s ease, transform 0.12s ease;
+    }
+    .btn:hover { background: rgba(0,0,0,0.03); transform: translateY(-1px); }
+    .instructor-select {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(0,0,0,0.08);
+      background: #fff;
+      min-width: 220px;
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+      border: 0;
+    }
+    .loading-dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:#666; margin-left:8px; opacity:0; animation: blink 1s infinite; }
+    @keyframes blink { 0%,100% { opacity:0 } 50% { opacity:1 } }
+  </style>
 </head>
 <body>
+  <main class="container">
+    <header class="hero">
+      <img id="logo" src="{{ url_for('static', filename='logo.png') }}" alt="Danger Report logo" />
+      <h1 class="hero-title">Danger Report</h1>
+      <p class="hero-sub">Reports and instructor context</p>
+    </header>
 
-    <h1>Danger Report</h1>
+    <nav class="toolbar" role="navigation" aria-label="Report toolbar">
+      <button id="backBtn" class="btn" type="button" aria-label="Go back">← Back</button>
 
-    <!-- Landing Screen -->
-    <div id="landingMessage">
-        <img id="logo" src="/static/logo.png" alt="Logo">
-        <p>Your daily Student report. Organized. Clear. Instructor‑focused.</p>
-    </div>
+      <div>
+        <label for="instructorSelect" class="sr-only">Change instructor</label>
+        <select id="instructorSelect" class="instructor-select" aria-label="Change instructor">
+          {% for inst in instructors %}
+            <option value="{{ inst.id }}" {% if inst.id == current %}selected{% endif %}>{{ inst.name }}</option>
+          {% endfor %}
+        </select>
+        <span id="instructorLoading" class="loading-dot" aria-hidden="true"></span>
+      </div>
 
-    <!-- Spotlight-style dropdown -->
-    <div id="dropdownContainer">
-        <input type="text" id="instructorSearch" placeholder="Search instructors...">
-        <div id="dropdownList"></div>
-    </div>
+      <div style="margin-left:auto; display:flex; align-items:center; gap:12px;">
+        <div id="instructorInfo" aria-live="polite">
+          <strong id="instructorName">{{ instructors | selectattr('id','equalto', current) | map(attribute='name') | list | first }}</strong>
+        </div>
+      </div>
+    </nav>
 
-    <div id="searchContainer">
-        <input type="text" id="searchBox" placeholder="Search this report...">
-    </div>
+    <section id="reportContent" class="report-content" aria-label="Danger reports">
+      <!-- Server should render initial report list/details here for the current instructor -->
+      {% include 'partials/report_list.html' %}
+    </section>
+  </main>
 
-    <table id="dataTable"></table>
+  <script>
+    // Back button: prefer history.back, fallback to reports list
+    document.getElementById('backBtn').addEventListener('click', function() {
+      if (document.referrer && document.referrer !== window.location.href) {
+        window.history.back();
+      } else {
+        window.location.href = '/reports';
+      }
+    });
 
-    <script>
-        let instructors = [];
-        let activeIndex = -1;
+    // Instructor dropdown behavior
+    const select = document.getElementById('instructorSelect');
+    const loadingDot = document.getElementById('instructorLoading');
+    select.addEventListener('change', async function() {
+      const instructorId = this.value;
+      // show loading indicator
+      loadingDot.style.opacity = '1';
 
-        // Load instructors
-        fetch("/api/get-sheets")
-            .then(r => r.json())
-            .then(data => {
-                if (!data.sheets) return;
-
-                instructors = data.sheets.sort((a, b) => a.localeCompare(b));
-                renderDropdown(instructors);
-            });
-
-        function renderDropdown(list) {
-            const dropdown = document.getElementById("dropdownList");
-            dropdown.innerHTML = list.map(i => `<div class="dropdown-item">${i}</div>`).join("");
-            dropdown.style.display = list.length ? "block" : "none";
-
-            document.querySelectorAll(".dropdown-item").forEach(item => {
-                item.onclick = () => selectInstructor(item.innerText);
-            });
-        }
-
-        function selectInstructor(name) {
-            document.getElementById("instructorSearch").value = name;
-            document.getElementById("dropdownList").style.display = "none";
-            loadSheet(name);
-        }
-
-        // Spotlight search filtering
-        document.getElementById("instructorSearch").addEventListener("input", function () {
-            const q = this.value.toLowerCase();
-            const filtered = instructors.filter(i => i.toLowerCase().includes(q));
-            activeIndex = -1;
-            renderDropdown(filtered);
+      try {
+        // Preferred: fetch minimal instructor data and updated report HTML fragment
+        const res = await fetch('/api/change-instructor', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ instructor_id: instructorId })
         });
 
-        // Keyboard navigation
-        document.addEventListener("keydown", function (e) {
-            const items = document.querySelectorAll(".dropdown-item");
-            if (!items.length) return;
+        if (!res.ok) throw new Error('Network error');
 
-            if (e.key === "ArrowDown") {
-                activeIndex = (activeIndex + 1) % items.length;
-            } else if (e.key === "ArrowUp") {
-                activeIndex = (activeIndex - 1 + items.length) % items.length;
-            } else if (e.key === "Enter" && activeIndex >= 0) {
-                selectInstructor(items[activeIndex].innerText);
-            }
+        const data = await res.json();
 
-            items.forEach((item, i) => item.classList.toggle("active", i === activeIndex));
-        });
+        // Update instructor name
+        const nameEl = document.getElementById('instructorName');
+        if (nameEl && data.name) nameEl.textContent = data.name;
 
-        // Load sheet data with fade-out + fade-in
-        function loadSheet(sheetName) {
-            const table = document.getElementById("dataTable");
-            const landing = document.getElementById("landingMessage");
-            const search = document.getElementById("searchContainer");
-
-            landing.style.display = "none";
-            search.style.display = "block";
-
-            table.classList.remove("loaded");
-            table.classList.add("fade-out");
-
-            setTimeout(() => {
-                fetch(`/api/get-sheet-data/${sheetName}`)
-                    .then(r => r.json())
-                    .then(data => {
-                        if (!data.columns) return;
-
-                        const daySortIndex = data.columns.indexOf("__day_sort");
-                        const dayColorIndex = data.columns.indexOf("__day_color");
-
-                        data.rows.sort((a, b) => Number(a[daySortIndex]) - Number(b[daySortIndex]));
-
-                        let html = "<tr>";
-                        data.columns.forEach((c, i) => {
-                            if (!c.startsWith("__")) html += `<th>${c}</th>`;
-                        });
-                        html += "</tr>";
-
-                        data.rows.forEach(row => {
-                            const colorClass = row[dayColorIndex];
-                            html += `<tr class="${colorClass}">`;
-                            row.forEach((cell, i) => {
-                                if (!data.columns[i].startsWith("__")) html += `<td>${cell}</td>`;
-                            });
-                            html += "</tr>";
-                        });
-
-                        table.innerHTML = html;
-                        table.style.display = "table";
-
-                        setTimeout(() => {
-                            table.classList.remove("fade-out");
-                            table.classList.add("loaded");
-                        }, 50);
-
-                        applySearchFilter();
-                    });
-            }, 200);
+        // If server returns an HTML fragment for reports, replace content
+        if (data.reports_html) {
+          document.getElementById('reportContent').innerHTML = data.reports_html;
+          // update URL so selection persists on reload
+          const url = new URL(window.location);
+          url.searchParams.set('instructor', instructorId);
+          window.history.replaceState({}, '', url);
+        } else {
+          // Fallback: redirect to server-rendered page for the instructor
+          window.location.href = `/danger-report?instructor=${encodeURIComponent(instructorId)}`;
         }
+      } catch (err) {
+        console.error(err);
+        // On error, fallback to redirect
+        window.location.href = `/danger-report?instructor=${encodeURIComponent(instructorId)}`;
+      } finally {
+        loadingDot.style.opacity = '0';
+      }
+    });
 
-        // Table search
-        function applySearchFilter() {
-            const q = document.getElementById("searchBox").value.toLowerCase();
-            const rows = document.getElementById("dataTable").getElementsByTagName("tr");
-
-            for (let i = 1; i < rows.length; i++) {
-                const cells = rows[i].getElementsByTagName("td");
-                let match = false;
-
-                for (let c = 0; c < cells.length; c++) {
-                    if (cells[c].innerText.toLowerCase().includes(q)) {
-                        match = true;
-                        break;
-                    }
-                }
-
-                rows[i].style.display = match ? "" : "none";
-            }
-        }
-
-        document.getElementById("searchBox").addEventListener("input", applySearchFilter);
-    </script>
-
+    // Optional helper for progressive enhancement: applyInstructorData can be called by other scripts
+    function applyInstructorData(data) {
+      if (!data) return;
+      const nameEl = document.getElementById('instructorName');
+      if (nameEl && data.name) nameEl.textContent = data.name;
+      if (data.reports_html) {
+        document.getElementById('reportContent').innerHTML = data.reports_html;
+      }
+    }
+  </script>
 </body>
 </html>

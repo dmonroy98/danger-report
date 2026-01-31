@@ -1,0 +1,12 @@
+#logo {
+  border-radius: 12px;
+  max-width: 150px;
+  box-shadow: none; /* or subtle shadow: 0 2px 6px rgba(0,0,0,0.1) */
+  transition: transform 0.3s ease, filter 0.3s ease;
+  cursor: pointer;
+}
+
+#logo:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
