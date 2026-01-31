@@ -10,16 +10,18 @@ app = Flask(__name__)
 # ─── Configuration ──────────────────────────────────────────────────────────────
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
-# Find any .xlsx file in data/ (use the first one found)
-xlsx_files = glob.glob(os.path.join(DATA_DIR, '*.xlsx'))
+# Find any common Excel file in data/ (*.xlsx, *.xlsm, *.xls, *.xlsb)
+excel_files = glob.glob(os.path.join(DATA_DIR, '*.xls*'))
 
-if not xlsx_files:
+if not excel_files:
     EXCEL_PATH = None
     INSTRUCTORS = ["No Excel file found in /data"]
-    print("ERROR: No .xlsx file found in data/ folder")
-    print(f"Expected path example: {os.path.join(DATA_DIR, 'yourfile.xlsx')}")
+    print("ERROR: No Excel file (*.xls*, *.xlsx, *.xlsm, etc.) found in data/ folder")
+    print(f"Expected path example: {os.path.join(DATA_DIR, 'yourfile.xlsm')}")
 else:
-    EXCEL_PATH = xlsx_files[0]  # take the first .xlsx file
+    # Sort to prefer .xlsx or .xlsm over .xls/.xlsb if multiple (optional but nice)
+    excel_files.sort(key=lambda f: (not f.lower().endswith(('.xlsx', '.xlsm')), f))
+    EXCEL_PATH = excel_files[0]  # take the "best" one
     print(f"Using Excel file: {EXCEL_PATH}")
     try:
         excel_file = pd.ExcelFile(EXCEL_PATH)
@@ -39,7 +41,7 @@ def get_table_html(instructor):
         if instructor not in INSTRUCTORS:
             return f'<p style="color: red;">Sheet for "{instructor}" not found in Excel.</p>'
 
-        # Read the specific sheet
+        # Read the specific sheet (openpyxl handles .xlsm fine)
         df = pd.read_excel(EXCEL_PATH, sheet_name=instructor, engine='openpyxl')
 
         # Clean up
@@ -89,7 +91,6 @@ def danger_report():
 
 @app.route('/')
 def index():
-    # For root URL, show the danger-report page with first instructor (or welcome message)
     instructor = INSTRUCTORS[0] if INSTRUCTORS and INSTRUCTORS[0] != "No Excel file found in /data" else ""
     table_html = "<p style='padding: 20px;'>Welcome to Danger Report — please select an instructor above.</p>"
 
