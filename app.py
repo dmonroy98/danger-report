@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from flask import Flask, render_template, jsonify, request, redirect, flash
+from flask import Flask, render_template, jsonify, request, redirect, flash, make_response
 from openpyxl import load_workbook
 
 app = Flask(__name__)
@@ -58,7 +58,10 @@ def home():
 # ---------------------------------------------------------
 @app.route("/danger-report", methods=["GET", "POST"])
 def danger_report():
-    wb = load_excel_from_local()
+    try:
+        wb = load_excel_from_local()
+    except Exception as e:
+        return f"Error loading Excel file: {e}. Please upload a file."
 
     # 1. Clean sheet names
     sheet_names = [str(s).strip() for s in wb.sheetnames]
@@ -161,6 +164,7 @@ def get_sheet_data(sheet_name):
         data = ws.values
         df = pd.DataFrame(data)
 
+        # Basic cleanup for API (You might want to apply the Robust Header Finder here too eventually)
         df.columns = df.iloc[0]
         df = df[1:]
 
