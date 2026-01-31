@@ -1,360 +1,270 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Danger Report</title>
+
     <style>
+        :root {
+            --bg: #f5f5f7;
+            --card: white;
+            --text: #1d1d1f;
+            --border: #ddd;
+            --hover: #f0f0f3;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #1c1c1e;
+                --card: #2c2c2e;
+                --text: #f5f5f7;
+                --border: #3a3a3c;
+                --hover: #3a3a3c;
+            }
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            padding: 20px;
-            background: #F5F5F7;
-            color: #1C1C1E;
-            text-align: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 0;
+            color: var(--text);
         }
 
-        /* Frosted glass header */
-        h1 {
-            margin-bottom: 20px;
-            font-weight: 600;
-            padding: 12px 20px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.55);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-            display: inline-block;
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            background: var(--card);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            opacity: 0;
+            animation: fadeIn 0.4s ease forwards;
         }
 
-        /* Logo */
-        #logo {
-            width: 120px;
-            opacity: 0.9;
-            margin-bottom: 15px;
+        @keyframes fadeIn {
+            to { opacity: 1; }
         }
 
-        /* Landing message */
-        #landingMessage {
-            margin-top: 40px;
-            color: #3A3A3C;
-            font-size: 18px;
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
         }
 
-        /* Spotlight-style dropdown container */
-        #dropdownContainer {
-            position: relative;
-            width: 300px;
-            margin: 0 auto;
-            text-align: left;
-        }
-
-        /* Spotlight search input */
-        #instructorSearch {
-            width: 100%;
-            padding: 10px 14px;
-            border-radius: 12px;
-            border: 1px solid #C7C7CC;
-            background: #FFFFFF;
-            font-size: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-        }
-
-        /* Dropdown list */
-        #dropdownList {
-            position: absolute;
-            top: 48px;
-            width: 100%;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-            max-height: 220px;
-            overflow-y: auto;
-            display: none;
-            z-index: 10;
-        }
-
-        .dropdown-item {
-            padding: 10px 14px;
+        .back-btn {
+            background: var(--hover);
+            border: none;
+            padding: 10px 16px;
+            border-radius: 10px;
             cursor: pointer;
-            transition: background 0.15s ease;
-        }
-
-        .dropdown-item:hover,
-        .dropdown-item.active {
-            background: rgba(0,0,0,0.06);
-        }
-
-        /* Search bar above table */
-        #searchContainer {
-            margin-top: 15px;
-            margin-bottom: 10px;
-            display: none;
-            text-align: left;
-        }
-
-        #searchBox {
-            padding: 8px 12px;
-            width: 260px;
             font-size: 14px;
-            border-radius: 8px;
-            border: 1px solid #C7C7CC;
-            background: #FFFFFF;
+            color: var(--text);
         }
 
-        /* Apple-style table */
-        table {
-            border-collapse: separate;
-            border-spacing: 0;
+        .back-btn:hover {
+            opacity: 0.8;
+        }
+
+        select {
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--text);
+        }
+
+        /* Spotlight search */
+        .search-box {
             width: 100%;
-            margin-top: 15px;
-            background: white;
+            padding: 12px 16px;
+            margin-top: 10px;
             border-radius: 12px;
-            overflow: hidden;
+            border: 1px solid var(--border);
+            font-size: 16px;
+            background: var(--card);
+            color: var(--text);
             box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-            opacity: 0;
-            transition: opacity 0.35s ease;
-            display: none;
         }
 
-        table.loaded {
-            opacity: 1;
-        }
-
-        table.fade-out {
-            opacity: 0;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+            font-size: 14px;
         }
 
         th {
-            background: #F2F2F7;
-            font-weight: 600;
-            padding: 12px;
-            border-bottom: 1px solid #E5E5EA;
+            background: var(--hover);
+            padding: 10px;
             text-align: left;
+            border-bottom: 2px solid var(--border);
+            cursor: pointer;
+            position: sticky;
+            top: 0;
+            z-index: 5;
         }
 
         td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #E5E5EA;
-            transition: background-color 0.2s ease;
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border);
         }
 
-        tr:last-child td {
-            border-bottom: none;
+        tr:hover {
+            background: var(--hover);
         }
 
-        tr:hover td {
-            background-color: rgba(0,0,0,0.04);
-        }
+        /* Day color classes */
+        .day-m { background: #e8f4ff; }
+        .day-tu { background: #e8fff3; }
+        .day-w { background: #fff8e8; }
+        .day-th { background: #f3e8ff; }
+        .day-f { background: #ffe8e8; }
+        .day-sa { background: #e8fffe; }
+        .day-su { background: #f9e8ff; }
 
-        /* Ultra-soft Apple-inspired row colors */
-        .day-m  { background-color: #F7F7F8; }
-        .day-tu { background-color: #E7EEF8; }
-        .day-w  { background-color: #E9F5EF; }
-        .day-th { background-color: #FAF4E3; }
-        .day-f  { background-color: #F8EDEF; }
-        .day-sa { background-color: #F1EEFA; }
-        .day-su { background-color: #F7EDE3; }
-
-        /* DARK MODE */
         @media (prefers-color-scheme: dark) {
-            body {
-                background: #1C1C1E;
-                color: #F2F2F7;
+            .day-m, .day-tu, .day-w, .day-th, .day-f, .day-sa, .day-su {
+                filter: brightness(0.7);
             }
+        }
 
-            h1 {
-                background: rgba(40,40,40,0.55);
-                box-shadow: 0 4px 14px rgba(0,0,0,0.4);
-            }
+        .export-btn {
+            margin-top: 20px;
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: none;
+            background: #007aff;
+            color: white;
+            cursor: pointer;
+        }
 
-            #landingMessage {
-                color: #D1D1D6;
-            }
-
-            #instructorSearch,
-            #searchBox {
-                background: #2C2C2E;
-                color: #F2F2F7;
-                border: 1px solid #3A3A3C;
-            }
-
-            #dropdownList {
-                background: #2C2C2E;
-                box-shadow: 0 6px 18px rgba(0,0,0,0.6);
-            }
-
-            .dropdown-item:hover,
-            .dropdown-item.active {
-                background: rgba(255,255,255,0.08);
-            }
-
-            table {
-                background: #2C2C2E;
-                box-shadow: 0 4px 14px rgba(0,0,0,0.5);
-            }
-
-            th {
-                background: #3A3A3C;
-                border-bottom: 1px solid #48484A;
-            }
-
-            td {
-                border-bottom: 1px solid #3A3A3C;
-            }
-
-            tr:hover td {
-                background-color: rgba(255,255,255,0.06);
-            }
+        .export-btn:hover {
+            opacity: 0.85;
         }
     </style>
 </head>
+
 <body>
 
-    <h1>Danger Report</h1>
+<div class="container">
 
-    <!-- Landing Screen -->
-    <div id="landingMessage">
-        <img id="logo" src="/static/logo.png" alt="Logo">
-        <p>Your daily Student report. Organized. Clear. Instructor‑focused.</p>
+    <div class="top-bar">
+        <button class="back-btn" onclick="window.location.href='/'">← Back</button>
+
+        <form id="instructorForm" method="POST">
+            <select name="instructor" onchange="document.getElementById('instructorForm').submit()">
+                {% for name in instructors %}
+                    <option value="{{ name }}" {% if name == current %}selected{% endif %}>
+                        {{ name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
     </div>
 
-    <!-- Spotlight-style dropdown -->
-    <div id="dropdownContainer">
-        <input type="text" id="instructorSearch" placeholder="Search instructors...">
-        <div id="dropdownList"></div>
+    <h1>Danger Report – {{ current }}</h1>
+
+    <!-- Spotlight Search -->
+    <input type="text" id="searchBox" class="search-box" placeholder="Search…">
+
+    <div id="tableContainer">
+        {{ table|safe }}
     </div>
 
-    <div id="searchContainer">
-        <input type="text" id="searchBox" placeholder="Search this report...">
-    </div>
+    <button class="export-btn" onclick="exportPNG()">Export as PNG</button>
 
-    <table id="dataTable"></table>
+</div>
 
-    <script>
-        let instructors = [];
-        let activeIndex = -1;
+<script>
+/* ------------------------------
+   Spotlight-style search
+--------------------------------*/
+document.getElementById("searchBox").addEventListener("input", function () {
+    const filter = this.value.toLowerCase();
+    const rows = document.querySelectorAll("table tbody tr");
 
-        // Load instructors
-        fetch("/api/get-sheets")
-            .then(r => r.json())
-            .then(data => {
-                if (!data.sheets) return;
+    rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        row.style.display = text.includes(filter) ? "" : "none";
+    });
+});
 
-                instructors = data.sheets.sort((a, b) => a.localeCompare(b));
-                renderDropdown(instructors);
-            });
+/* ------------------------------
+   Column sorting
+--------------------------------*/
+document.querySelectorAll("th").forEach((header, index) => {
+    header.addEventListener("click", () => {
+        const table = header.closest("table");
+        const tbody = table.querySelector("tbody");
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        const asc = header.classList.toggle("asc");
 
-        function renderDropdown(list) {
-            const dropdown = document.getElementById("dropdownList");
-            dropdown.innerHTML = list.map(i => `<div class="dropdown-item">${i}</div>`).join("");
-            dropdown.style.display = list.length ? "block" : "none";
-
-            document.querySelectorAll(".dropdown-item").forEach(item => {
-                item.onclick = () => selectInstructor(item.innerText);
-            });
-        }
-
-        function selectInstructor(name) {
-            document.getElementById("instructorSearch").value = name;
-            document.getElementById("dropdownList").style.display = "none";
-            loadSheet(name);
-        }
-
-        // Spotlight search filtering
-        document.getElementById("instructorSearch").addEventListener("input", function () {
-            const q = this.value.toLowerCase();
-            const filtered = instructors.filter(i => i.toLowerCase().includes(q));
-            activeIndex = -1;
-            renderDropdown(filtered);
+        rows.sort((a, b) => {
+            const A = a.children[index].innerText.trim();
+            const B = b.children[index].innerText.trim();
+            return asc ? A.localeCompare(B) : B.localeCompare(A);
         });
 
-        // Keyboard navigation
-        document.addEventListener("keydown", function (e) {
-            const items = document.querySelectorAll(".dropdown-item");
-            if (!items.length) return;
+        rows.forEach(r => tbody.appendChild(r));
+    });
+});
 
-            if (e.key === "ArrowDown") {
-                activeIndex = (activeIndex + 1) % items.length;
-            } else if (e.key === "ArrowUp") {
-                activeIndex = (activeIndex - 1 + items.length) % items.length;
-            } else if (e.key === "Enter" && activeIndex >= 0) {
-                selectInstructor(items[activeIndex].innerText);
-            }
+/* ------------------------------
+   Export table to PNG with timestamp + logo
+--------------------------------*/
+function exportPNG() {
+    html2canvas(document.querySelector("#tableContainer")).then(canvas => {
+        const ctx = canvas.getContext("2d");
 
-            items.forEach((item, i) => item.classList.toggle("active", i === activeIndex));
-        });
+        // Timestamp
+        const timestamp = new Date().toLocaleString();
 
-        // Load sheet data with fade-out + fade-in
-        function loadSheet(sheetName) {
-            const table = document.getElementById("dataTable");
-            const landing = document.getElementById("landingMessage");
-            const search = document.getElementById("searchContainer");
+        // Logo (replace with your real logo URL)
+        const logo = new Image();
+        logo.src = "https://upload.wikimedia.org/wikipedia/commons/3/3a/Logo_placeholder.png";
 
-            landing.style.display = "none";
-            search.style.display = "block";
+        logo.onload = () => {
+            const logoSize = 24;
+            const padding = 20;
 
-            table.classList.remove("loaded");
-            table.classList.add("fade-out");
+            // Draw logo bottom-right
+            ctx.drawImage(
+                logo,
+                canvas.width - logoSize - padding,
+                canvas.height - logoSize - padding,
+                logoSize,
+                logoSize
+            );
 
-            setTimeout(() => {
-                fetch(`/api/get-sheet-data/${sheetName}`)
-                    .then(r => r.json())
-                    .then(data => {
-                        if (!data.columns) return;
+            // Draw timestamp to the left of logo
+            ctx.font = "16px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial";
+            ctx.fillStyle = "rgba(0,0,0,0.65)";
+            ctx.textAlign = "right";
 
-                        const daySortIndex = data.columns.indexOf("__day_sort");
-                        const dayColorIndex = data.columns.indexOf("__day_color");
+            ctx.fillText(
+                timestamp,
+                canvas.width - logoSize - padding - 10,
+                canvas.height - padding
+            );
 
-                        data.rows.sort((a, b) => Number(a[daySortIndex]) - Number(b[daySortIndex]));
+            // Download
+            const link = document.createElement("a");
+            link.download = "danger-report.png";
+            link.href = canvas.toDataURL();
+            link.click();
+        };
+    });
+}
 
-                        let html = "<tr>";
-                        data.columns.forEach((c, i) => {
-                            if (!c.startsWith("__")) html += `<th>${c}</th>`;
-                        });
-                        html += "</tr>";
-
-                        data.rows.forEach(row => {
-                            const colorClass = row[dayColorIndex];
-                            html += `<tr class="${colorClass}">`;
-                            row.forEach((cell, i) => {
-                                if (!data.columns[i].startsWith("__")) html += `<td>${cell}</td>`;
-                            });
-                            html += "</tr>";
-                        });
-
-                        table.innerHTML = html;
-                        table.style.display = "table";
-
-                        setTimeout(() => {
-                            table.classList.remove("fade-out");
-                            table.classList.add("loaded");
-                        }, 50);
-
-                        applySearchFilter();
-                    });
-            }, 200);
-        }
-
-        // Table search
-        function applySearchFilter() {
-            const q = document.getElementById("searchBox").value.toLowerCase();
-            const rows = document.getElementById("dataTable").getElementsByTagName("tr");
-
-            for (let i = 1; i < rows.length; i++) {
-                const cells = rows[i].getElementsByTagName("td");
-                let match = false;
-
-                for (let c = 0; c < cells.length; c++) {
-                    if (cells[c].innerText.toLowerCase().includes(q)) {
-                        match = true;
-                        break;
-                    }
-                }
-
-                rows[i].style.display = match ? "" : "none";
-            }
-        }
-
-        document.getElementById("searchBox").addEventListener("input", applySearchFilter);
-    </script>
+/* Load html2canvas dynamically */
+(function loadCanvasLib() {
+    const script = document.createElement("script");
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+    document.body.appendChild(script);
+})();
+</script>
 
 </body>
 </html>

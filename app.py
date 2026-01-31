@@ -53,11 +53,58 @@ def home():
     return render_template("main.html")
 
 
-@app.route("/danger-report")
+# ---------------------------------------------------------
+# MAIN DANGER REPORT PAGE (with dropdown + back button)
+# ---------------------------------------------------------
+@app.route("/danger-report", methods=["GET", "POST"])
 def danger_report():
-    return render_template("danger_report.html")
+    wb = load_excel_from_local()
+
+    # Get instructor sheet names (filter out "combined")
+    sheet_names = [s.strip() for s in wb.sheetnames]
+    instructors = [s for s in sheet_names if "combined" not in s.lower()]
+
+    # Default instructor on first load
+    current = instructors[0] if instructors else None
+
+    # If user selected an instructor
+    if request.method == "POST":
+        selected = request.form.get("instructor")
+        if selected in instructors:
+            current = selected
+
+    # Load table for the current instructor
+    ws = wb[current]
+    data = ws.values
+    df = pd.DataFrame(data)
+
+    df.columns = df.iloc[0]
+    df = df[1:]
+
+    # Add day sorting + color
+    if "Class Name" in df.columns:
+        df["__day_code"] = df["Class Name"].apply(extract_day_code)
+        df["__day_sort"] = df["__day_code"].map(DAY_ORDER).fillna(999)
+        df["__day_color"] = df["__day_code"].map(DAY_COLOR).fillna("")
+    else:
+        df["__day_code"] = ""
+        df["__day_sort"] = 999
+        df["__day_color"] = ""
+
+    # Convert to HTML table
+    table_html = df.to_html(classes="danger-table", index=False)
+
+    return render_template(
+        "danger_report.html",
+        instructors=instructors,
+        current=current,
+        table=table_html
+    )
 
 
+# ---------------------------------------------------------
+# API ENDPOINTS (unchanged)
+# ---------------------------------------------------------
 @app.route("/api/get-sheets")
 def get_sheets():
     try:
@@ -102,10 +149,9 @@ def get_sheet_data(sheet_name):
         return jsonify({"error": str(e)}), 500
 
 
-# -----------------------------
+# ---------------------------------------------------------
 # PASSWORD-PROTECTED UPLOAD
-# -----------------------------
-
+# ---------------------------------------------------------
 @app.route("/upload")
 def upload_page():
     return render_template("upload.html")
