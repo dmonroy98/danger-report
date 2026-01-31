@@ -81,6 +81,10 @@ def danger_report():
     df.columns = df.iloc[0]
     df = df[1:]
 
+    # Normalize instructor column if present
+    if "Instructors" in df.columns:
+        df["Instructors"] = df["Instructors"].astype(str).str.strip()
+
     # Add day sorting + color
     if "Class Name" in df.columns:
         df["__day_code"] = df["Class Name"].apply(extract_day_code)
@@ -103,7 +107,7 @@ def danger_report():
 
 
 # ---------------------------------------------------------
-# API ENDPOINTS (unchanged)
+# API ENDPOINTS
 # ---------------------------------------------------------
 @app.route("/api/get-sheets")
 def get_sheets():
@@ -127,6 +131,10 @@ def get_sheet_data(sheet_name):
 
         df.columns = df.iloc[0]
         df = df[1:]
+
+        # Normalize instructor column
+        if "Instructors" in df.columns:
+            df["Instructors"] = df["Instructors"].astype(str).str.strip()
 
         if "Class Name" in df.columns:
             df["__day_code"] = df["Class Name"].apply(extract_day_code)
