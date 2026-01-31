@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Danger Report</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #fafafa;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        select {
+            padding: 8px;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        #searchContainer {
+            margin-top: 15px;
+            margin-bottom: 10px;
+            display: none; /* hidden until a sheet loads */
+        }
+
+        #searchBox {
+            padding: 8px;
+            width: 250px;
+            font-size: 14px;
+        }
+
+        table { 
+            border-collapse: collapse; 
+            width: 100%; 
+            margin-top: 10px; 
+            background: white;
+        }
+
+        th, td { 
+            border: 1px solid #ccc; 
+            padding: 8px; 
+            font-size: 14px;
+        }
+
+        th { 
+            background: #f0f0f0; 
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Danger Report</h1>
+
+    <label>Select Instructor:</label>
+    <select id="sheetDropdown"></select>
+
+    <!-- Search bar appears ONLY after a sheet loads -->
+    <div id="searchContainer">
+        <input type="text" id="searchBox" placeholder="Search this report...">
+    </div>
+
+    <table id="dataTable"></table>
+
+    <script>
+        // Load sheet names from backend
+        fetch("/api/get-sheets")
+            .then(response => response.json())
+            .then(data => {
+                const dropdown = document.getElementById("sheetDropdown");
+
+                if (!data.sheets) {
+                    dropdown.innerHTML = "<option>Error loading sheets</option>";
+                    return;
+                }
+
+                dropdown.innerHTML = data.sheets
+                    .map(s => `<option value="${s}">${s}</option>`)
+                    .join("");
+
+                // Auto-load first sheet
+                if (data.sheets.length > 0) {
+                    loadSheet(data.sheets[0]);
+                }
+            });
+
+        // Load sheet data into table
+        function loadSheet(sheetName) {
+            fetch(`/api/get-sheet-data/${sheetName}`)
+                .then(response => response.json())
+                .then(data => {
+                    const table = document.getElementById("dataTable");
+
+                    if (!data.columns) {
+                        table.innerHTML = "<tr><td>Error loading data</td></tr>";
+                        return;
+                    }
+
+                    // Show search bar now that data exists
+                    document.getElementById("searchContainer").style.display = "block";
+
+                    let html = "<tr>" + data.columns.map(c => `<th>${c}</th>`).join("") + "</tr>";
+
+                    data.rows.forEach(row => {
+                        html += "<tr>" + row.map(cell => `<td>${cell}</td>`).join("") + "</tr>";
+                    });
+
+                    table.innerHTML = html;
+
+                    // Reapply search filter after loading new sheet
+                    applySearchFilter();
+                });
+        }
+
+        // Search filter
+        function applySearchFilter() {
+            const query = document.getElementById("searchBox").value.toLowerCase();
+            const table = document.getElementById("dataTable");
+            const rows = table.getElementsByTagName("tr");
+
+            // Skip header row
+            for (let i = 1; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName("td");
+                let match = false;
+
+                for (let c = 0; c < cells.length; c++) {
+                    if (cells[c].innerText.toLowerCase().includes(query)) {
+                        match = true;
+                        break;
+                    }
+                }
+
+                rows[i].style.display = match ? "" : "none";
+            }
+        }
+
+        // Trigger search on typing
+        document.getElementById("searchBox").addEventListener("input", applySearchFilter);
+
+        // Reload sheet when dropdown changes
+        document.getElementById("sheetDropdown").addEventListener("change", function () {
+            loadSheet(this.value);
+        });
+    </script>
+
+</body>
+</html>
