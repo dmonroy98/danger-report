@@ -67,36 +67,42 @@ def danger_report():
     # Default instructor on first load
     current = instructors[0] if instructors else None
 
-    # If user selected an instructor
-    if request.method == "POST":
-        selected = request.form.get("instructor")
-        if selected in instructors:
-            current = selected
+    # --- THE FIX STARTS HERE ---
+    # Check if 'instructor' is in the URL (?instructor=Name) OR in the Form (POST)
+    selected = request.args.get("instructor") or request.form.get("instructor")
+    
+    # If a valid instructor was found in either place, switch to it
+    if selected and selected in instructors:
+        current = selected
+    # --- THE FIX ENDS HERE ---
 
     # Load table for the current instructor
-    ws = wb[current]
-    data = ws.values
-    df = pd.DataFrame(data)
+    if current:
+        ws = wb[current]
+        data = ws.values
+        df = pd.DataFrame(data)
 
-    df.columns = df.iloc[0]
-    df = df[1:]
+        df.columns = df.iloc[0]
+        df = df[1:]
 
-    # Normalize instructor column if present
-    if "Instructors" in df.columns:
-        df["Instructors"] = df["Instructors"].astype(str).str.strip()
+        # Normalize instructor column if present
+        if "Instructors" in df.columns:
+            df["Instructors"] = df["Instructors"].astype(str).str.strip()
 
-    # Add day sorting + color
-    if "Class Name" in df.columns:
-        df["__day_code"] = df["Class Name"].apply(extract_day_code)
-        df["__day_sort"] = df["__day_code"].map(DAY_ORDER).fillna(999)
-        df["__day_color"] = df["__day_code"].map(DAY_COLOR).fillna("")
+        # Add day sorting + color
+        if "Class Name" in df.columns:
+            df["__day_code"] = df["Class Name"].apply(extract_day_code)
+            df["__day_sort"] = df["__day_code"].map(DAY_ORDER).fillna(999)
+            df["__day_color"] = df["__day_code"].map(DAY_COLOR).fillna("")
+        else:
+            df["__day_code"] = ""
+            df["__day_sort"] = 999
+            df["__day_color"] = ""
+
+        # Convert to HTML table
+        table_html = df.to_html(classes="danger-table", index=False)
     else:
-        df["__day_code"] = ""
-        df["__day_sort"] = 999
-        df["__day_color"] = ""
-
-    # Convert to HTML table
-    table_html = df.to_html(classes="danger-table", index=False)
+        table_html = "<p>No instructor data found.</p>"
 
     return render_template(
         "danger_report.html",
@@ -104,7 +110,6 @@ def danger_report():
         current=current,
         table=table_html
     )
-
 
 # ---------------------------------------------------------
 # API ENDPOINTS
