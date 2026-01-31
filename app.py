@@ -60,64 +60,83 @@ def home():
 def danger_report():
     wb = load_excel_from_local()
 
-    # 1. Clean sheet names (strip whitespace)
+    # 1. Clean sheet names
     sheet_names = [str(s).strip() for s in wb.sheetnames]
     instructors = [s for s in sheet_names if "combined" not in s.lower()]
 
-    # Default instructor
+    # Default instructor (fallback)
     current = instructors[0] if instructors else None
 
     # 2. Check URL (GET) or Dropdown (POST)
     selected = request.args.get("instructor") or request.form.get("instructor")
 
-    # 3. DEBUG: Print to Render logs to see why it might fail
     if selected:
-        print(f"DEBUG: User requested '{selected}'")
         if selected in instructors:
-            print(f"DEBUG: Found match! Switching to '{selected}'")
+            print(f"DEBUG: Request for '{selected}' - MATCH FOUND.")
             current = selected
         else:
-            print(f"DEBUG: No exact match found. Available sheets: {instructors}")
+            print(f"DEBUG: Request for '{selected}' - NO MATCH. Available: {instructors[:3]}...")
 
-    # Load data for the determined 'current' instructor
+    # Load data
+    table_html = "<p>No data loaded.</p>"
+    
     if current:
         ws = wb[current]
-        data = ws.values
-        df = pd.DataFrame(data)
+        data = list(ws.values)
+        
+        # --- ROBUST HEADER FINDER ---
+        # We look for a row that contains "Class Name" AND "Instructors"
+        header_index = -1
+        for i, row in enumerate(data[:10]): # Scan first 10 rows
+            # Convert row to string, strip whitespace, handle None
+            row_clean = [str(cell).strip() for cell in row if cell is not None]
+            
+            # Check if our key columns exist in this row
+            if "Class Name" in row_clean and "Instructors" in row_clean:
+                header_index = i
+                print(f"DEBUG: Found Headers on Row {i+1}: {row_clean}")
+                break
+        
+        if header_index != -1:
+            # Create DataFrame starting from the detected header row
+            df = pd.DataFrame(data)
+            df.columns = df.iloc[header_index] # Set headers
+            df = df[header_index + 1:]         # Keep data after headers
+            
+            # Clean Column Names (remove spaces like "Class Name ")
+            df.columns = [str(c).strip() for c in df.columns]
+            
+            # --- DATA PROCESSING ---
+            # 1. Normalize Instructor Column
+            if "Instructors" in df.columns:
+                df["Instructors"] = df["Instructors"].astype(str).str.strip()
+            
+            # 2. Add Day Sorting
+            if "Class Name" in df.columns:
+                df["__day_code"] = df["Class Name"].apply(extract_day_code)
+                df["__day_sort"] = df["__day_code"].map(DAY_ORDER).fillna(999)
+                df["__day_color"] = df["__day_code"].map(DAY_COLOR).fillna("")
+            else:
+                # Fallback if column is missing despite our check
+                df["__day_code"] = ""
+                df["__day_sort"] = 999
+                df["__day_color"] = ""
 
-        # Set headers from the first row
-        df.columns = df.iloc[0]
-        df = df[1:]
-
-        # 4. FIX: Clean headers (remove hidden spaces like "Class Name ")
-        df.columns = [str(c).strip() for c in df.columns]
-
-        # Normalize instructor column
-        if "Instructors" in df.columns:
-            df["Instructors"] = df["Instructors"].astype(str).str.strip()
-
-        # Add day sorting + color
-        # This will now work even if your excel header was "Class Name " (with a space)
-        if "Class Name" in df.columns:
-            df["__day_code"] = df["Class Name"].apply(extract_day_code)
-            df["__day_sort"] = df["__day_code"].map(DAY_ORDER).fillna(999)
-            df["__day_color"] = df["__day_code"].map(DAY_COLOR).fillna("")
+            # 3. Create Table
+            table_html = df.to_html(classes="danger-table", index=False)
         else:
-            # Fallback if "Class Name" is still missing
-            df["__day_code"] = ""
-            df["__day_sort"] = 999
-            df["__day_color"] = ""
-
-        table_html = df.to_html(classes="danger-table", index=False)
-    else:
-        table_html = "<p>No instructor data found.</p>"
-
-    return render_template(
+            print(f"DEBUG: CRITICAL ERROR - Could not find headers in sheet '{current}'")
+            table_html = f"<p>Error: Could not find headers ('Class Name', 'Instructors') in the first 10 rows of sheet '{current}'.</p>"
+    
+    # Create response with No-Cache headers to ensure you see changes
+    response = make_response(render_template(
         "danger_report.html",
         instructors=instructors,
         current=current,
         table=table_html
-    )
+    ))
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    return response
 
 # ---------------------------------------------------------
 # API ENDPOINTS
