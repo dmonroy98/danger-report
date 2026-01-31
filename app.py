@@ -11,7 +11,7 @@ app = Flask(__name__)
 # ─── Configuration ──────────────────────────────────────────────────────────────
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
-# Find any common Excel file (*.xls*, covers xlsx, xlsm, etc.)
+# Find any common Excel file (*.xls*, covers xlsx, xlsm, xls, xlsb)
 excel_files = glob.glob(os.path.join(DATA_DIR, '*.xls*'))
 
 if not excel_files:
@@ -33,18 +33,19 @@ else:
 
 # ─── Custom day code extraction for sorting ─────────────────────────────────────
 DAY_ORDER = {
-    'M': 0, 'Mo': 0,     # Monday
-    'Tu': 1, 'T': 1,     # Tuesday
-    'W': 2,              # Wednesday
-    'Th': 3, 'R': 3,     # Thursday
-    'F': 4,              # Friday
-    'Sa': 5, 'S': 5,     # Saturday
-    'Su': 6,             # Sunday
+    'M': 0, 'MO': 0,
+    'TU': 1, 'T': 1,
+    'W': 2,
+    'TH': 3, 'R': 3,
+    'F': 4,
+    'SA': 5, 'S': 5,
+    'SU': 6,
 }
 
 def extract_day_code(class_name):
     if pd.isna(class_name):
         return 99
+    # Look for 1-2 uppercase letters at the very end (after optional space)
     match = re.search(r'\s*([A-Z]{1,2})$', str(class_name).strip().upper())
     if match:
         code = match.group(1)
@@ -60,10 +61,12 @@ def get_table_html(instructor):
         if instructor not in INSTRUCTORS:
             return f'<p style="color: red;">Sheet for "{instructor}" not found in Excel.</p>'
 
+        print(f"[DEBUG] Loading sheet: '{instructor}'")
+
         df = pd.read_excel(EXCEL_PATH, sheet_name=instructor, engine='openpyxl')
         df = df.fillna('')
 
-        # Optional: normalize column names (helps with case/spacing issues)
+        # Normalize column names (remove extra spaces, make consistent)
         df.columns = df.columns.str.strip().str.replace(r'\s+', ' ', regex=True)
 
         # Build sort columns and ascending dynamically
@@ -87,6 +90,7 @@ def get_table_html(instructor):
                 print(f"Date parsing failed for {instructor}: {date_err}")
 
         if sort_cols:
+            print(f"[DEBUG] Sorting by: {sort_cols} ascending: {ascending}")
             df = df.sort_values(by=sort_cols, ascending=ascending)
             if 'sort_day' in df.columns:
                 df = df.drop(columns=['sort_day'], errors='ignore')
@@ -103,38 +107,29 @@ def get_table_html(instructor):
     except Exception as e:
         traceback.print_exc()
         error_msg = f'<p style="color: red; font-weight: bold; padding: 20px;">Error loading data for {instructor}: {str(e)}</p>'
-        # Optional: show columns for debugging
         if 'df' in locals():
             error_msg += f'<p>Available columns: {", ".join(df.columns.tolist())}</p>'
         return error_msg
 
-# ─── Routes ────────────────────────────────────────────────────────────────────
-@app.route('/danger-report')
-def danger_report():
-    instructor = request.args.get('instructor', '').strip()
+# ─── Unified route for / and /danger-report ─────────────────────────────────────
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def danger_report(path=''):
+    instructor_param = request.args.get('instructor', '').strip()
+
+    print(f"[DEBUG] Requested path: /{path}, instructor param: '{instructor_param}'")
+
+    instructor = instructor_param
 
     if not instructor or instructor not in INSTRUCTORS:
-        instructor = INSTRUCTORS[0] if INSTRUCTORS else "No Data Available"
+        if instructor_param:
+            print(f"[WARN] Instructor '{instructor_param}' not found in sheets")
+        instructor = INSTRUCTORS[0] if INSTRUCTORS and INSTRUCTORS[0] not in [
+            "No Excel file found in /data",
+            "Excel file found but cannot be read"
+        ] else "No Data Available"
 
     table_html = get_table_html(instructor)
-    updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    return render_template(
-        'danger_report.html',
-        instructor=instructor,
-        instructors=INSTRUCTORS,
-        table_html=table_html,
-        updated_at=updated_at
-    )
-
-@app.route('/')
-def index():
-    instructor = INSTRUCTORS[0] if INSTRUCTORS and INSTRUCTORS[0] not in ["No Excel file found in /data", "Excel file found but cannot be read"] else ""
-    table_html = "<p style='padding: 20px;'>Welcome to Danger Report — please select an instructor above.</p>"
-
-    if instructor:
-        table_html = get_table_html(instructor)
-
     updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     return render_template(
