@@ -169,8 +169,18 @@
 <input type="text" id="searchBox" class="search-box" placeholder="Search…">
 
 <!-- Table -->
-<div id="tableContainer">
-    {{ table_html|safe }}
+<div id="tableContainer" style="min-height: 200px; background: #ffeb3b33; padding: 20px; border-radius: 12px;">
+    <h3 style="color: #d32f2f;">TEST — Backend data not coming through</h3>
+    <table border="1" style="width:100%;">
+        <thead>
+            <tr><th>Column 1</th><th>Column 2</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Test Row for Bianca H.</td><td>Some fake danger data</td></tr>
+            <tr class="day-tu"><td>Tu row</td><td>Hardcoded</td></tr>
+        </tbody>
+    </table>
+    <p>If you see this table, the problem is 100% in the backend not passing table_html or instructor.</p>
 </div>
 
 <button class="export-btn" onclick="exportPNG()">Export as PNG</button>
