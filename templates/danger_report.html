@@ -6,20 +6,29 @@ import traceback
 
 app = Flask(__name__)
 
-# Hardcoded instructors for now — replace with your real source (DB, file, etc.)
+# ───────────────────────────────────────────────
+#   Hardcoded instructors for now
+#   ← later read from excel tabs / database
+# ───────────────────────────────────────────────
 INSTRUCTORS = [
     "Bianca H.",
     "Alex K.",
     "Maria L.",
     "Jordan P.",
     "Taylor R.",
-    "Casey S."
+    "Casey S.",
+    "Felipe G.",
+    # ←← add all your real instructor names here
 ]
 
-# Dummy data generator — replace this with your actual data fetching logic
 def generate_table_html(instructor_name):
+    """
+    This is the function you will replace with your REAL excel reading logic
+    Right now it returns dummy data so you can see the table appear
+    """
     try:
-        # Example data — pretend this comes from your database/query
+        # ────── DUMMY DATA ──────
+        # (just so you see something working)
         data = {
             "Date": ["2025-01-07", "2025-01-08", "2025-01-10", "2025-01-14"],
             "Day": ["Tuesday", "Wednesday", "Friday", "Tuesday"],
@@ -28,15 +37,14 @@ def generate_table_html(instructor_name):
             "Students Enrolled": [12, 8, 15, 9],
             "Incidents Reported": [2, 0, 3, 1],
             "Danger Level": ["Medium", "Low", "High", "Medium"],
-            "Max Students": [15, 10, 20, 12]  # used for your special sort example
+            "Max Students": [15, 10, 20, 12]   # ← used in your special sort
         }
-        
+
         df = pd.DataFrame(data)
-        
-        # Optional: filter or highlight based on instructor (dummy)
-        df["Instructor"] = instructor_name  # or real filter if you have per-instructor data
-        
-        # Convert to HTML with classes for your CSS
+
+        # You can add instructor name if you want
+        # df["Instructor"] = instructor_name
+
         table_html = df.to_html(
             index=False,
             classes="table",
@@ -44,33 +52,31 @@ def generate_table_html(instructor_name):
             escape=False,
             justify="left"
         )
-        
-        # If your real data has day-based classes, add them here
-        # Example: you could parse and add tr.day-tu etc. via string replace or Styler
-        
+
         return table_html
-    
+
     except Exception as e:
         print(f"Error generating table for {instructor_name}: {str(e)}")
         traceback.print_exc()
-        return f'<p style="color: red; font-weight: bold; padding: 16px;">Error loading data: {str(e)}</p>'
+        return f'<p style="color: red; font-weight: bold; padding: 20px;">Error loading data: {str(e)}</p>'
+
 
 @app.route('/danger-report')
 def danger_report():
     instructor = request.args.get('instructor', '').strip()
-    
+
     print(f"[LOG] Requested instructor: '{instructor}'")
     print(f"[LOG] All instructors: {INSTRUCTORS}")
-    
-    # Fallback logic
+
+    # Fallback to first instructor if invalid / empty
     if not instructor or instructor not in INSTRUCTORS:
         instructor = INSTRUCTORS[0] if INSTRUCTORS else "No Instructors Available"
         print(f"[LOG] Falling back to: '{instructor}'")
-    
+
     table_html = generate_table_html(instructor)
-    
+
     updated_at = datetime.now().isoformat()
-    
+
     return render_template(
         'danger_report.html',
         instructor=instructor,
@@ -79,14 +85,20 @@ def danger_report():
         updated_at=updated_at
     )
 
-# Optional root route so / shows something useful
+
+# Optional — nice landing page when someone opens the root url
 @app.route('/')
 def index():
     return """
     <h1>Danger Report App</h1>
     <p>Go to: <a href="/danger-report">/danger-report</a></p>
-    <p>Or try: <a href="/danger-report?instructor=Bianca%20H.">Bianca H.'s report</a></p>
+    <p>Or try specific instructor:</p>
+    <ul>
+      <li><a href="/danger-report?instructor=Bianca%20H.">Bianca H.</a></li>
+      <li><a href="/danger-report?instructor=Felipe%20G.">Felipe G.</a></li>
+    </ul>
     """
 
+
 if __name__ == '__main__':
-    app.run(debug=True)  # debug=True only for local; Render ignores it anyway
+    app.run(debug=True)   # debug=True only matters locally — Render ignores it
