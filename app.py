@@ -1,4 +1,3 @@
-# app.py (updated with custom sorting on Class Name's day code)
 from flask import Flask, render_template, request
 import pandas as pd
 import os
@@ -32,31 +31,27 @@ else:
         INSTRUCTORS = ["Excel file found but cannot be read"]
         EXCEL_PATH = None
 
-# ─── Custom sorting logic for Class Name day codes ──────────────────────────────
-# Day code to weekday number for sorting (Monday=0 ... Sunday=6)
+# ─── Custom day code extraction for sorting ─────────────────────────────────────
 DAY_ORDER = {
-    'M': 0,      # Monday
-    'Tu': 1,     # Tuesday
-    'T': 1,      # Sometimes 'T' for Tuesday
-    'W': 2,      # Wednesday
-    'Th': 3,     # Thursday
-    'F': 4,      # Friday
-    'Sa': 5,     # Saturday
-    'Su': 6,     # Sunday
-    # Add more if needed, e.g., 'S': 5 for Saturday
+    'M': 0, 'Mo': 0,     # Monday
+    'Tu': 1, 'T': 1,     # Tuesday
+    'W': 2,              # Wednesday
+    'Th': 3, 'R': 3,     # Thursday
+    'F': 4,              # Friday
+    'Sa': 5, 'S': 5,     # Saturday
+    'Su': 6,             # Sunday
 }
 
 def extract_day_code(class_name):
     if pd.isna(class_name):
-        return None
-    # Extract last 1-2 uppercase letters after space or end of string
-    match = re.search(r'\s*([A-Z]{1,2})$', str(class_name).strip())
+        return 99
+    match = re.search(r'\s*([A-Z]{1,2})$', str(class_name).strip().upper())
     if match:
         code = match.group(1)
-        return DAY_ORDER.get(code, 99)  # 99 = unknown, goes last
-    return 99  # No code found
+        return DAY_ORDER.get(code, 99)
+    return 99
 
-# ─── Helper to generate table HTML ─────────────────────────────────────────────
+# ─── Generate table HTML with safe sorting ──────────────────────────────────────
 def get_table_html(instructor):
     if EXCEL_PATH is None:
         return '<p style="color: red; font-weight: bold; padding: 20px;">No valid Excel file available in /data folder.</p>'
@@ -68,18 +63,33 @@ def get_table_html(instructor):
         df = pd.read_excel(EXCEL_PATH, sheet_name=instructor, engine='openpyxl')
         df = df.fillna('')
 
-        # Add sort key column based on day code in Class Name (assuming column named 'Class Name')
+        # Optional: normalize column names (helps with case/spacing issues)
+        df.columns = df.columns.str.strip().str.replace(r'\s+', ' ', regex=True)
+
+        # Build sort columns and ascending dynamically
+        sort_cols = []
+        ascending = []
+
         if 'Class Name' in df.columns:
             df['sort_day'] = df['Class Name'].apply(extract_day_code)
-            # Sort primarily by day code, then by Class Name itself, then Date if present
-            sort_cols = ['sort_day', 'Class Name']
-            if 'Date' in df.columns:
+            sort_cols.append('sort_day')
+            ascending.append(True)   # earliest day first
+
+            sort_cols.append('Class Name')
+            ascending.append(True)   # alphabetical within day
+
+        if 'Date' in df.columns:
+            try:
                 df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
-                sort_cols.append('Date')  # secondary sort by date descending
-            df = df.sort_values(by=sort_cols, ascending=[True, True, False])
-            df = df.drop(columns=['sort_day'])  # clean up temp column
-        else:
-            print(f"Warning: 'Class Name' column not found for {instructor} — no custom sorting applied")
+                sort_cols.append('Date')
+                ascending.append(False)  # newest first
+            except Exception as date_err:
+                print(f"Date parsing failed for {instructor}: {date_err}")
+
+        if sort_cols:
+            df = df.sort_values(by=sort_cols, ascending=ascending)
+            if 'sort_day' in df.columns:
+                df = df.drop(columns=['sort_day'], errors='ignore')
 
         table_html = df.to_html(
             index=False,
@@ -92,7 +102,11 @@ def get_table_html(instructor):
 
     except Exception as e:
         traceback.print_exc()
-        return f'<p style="color: red; font-weight: bold; padding: 20px;">Error loading data for {instructor}: {str(e)}</p>'
+        error_msg = f'<p style="color: red; font-weight: bold; padding: 20px;">Error loading data for {instructor}: {str(e)}</p>'
+        # Optional: show columns for debugging
+        if 'df' in locals():
+            error_msg += f'<p>Available columns: {", ".join(df.columns.tolist())}</p>'
+        return error_msg
 
 # ─── Routes ────────────────────────────────────────────────────────────────────
 @app.route('/danger-report')
