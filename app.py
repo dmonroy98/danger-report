@@ -27,6 +27,7 @@ def load_excel_from_dropbox():
         return wb
 
     except Exception as e:
+        print("DROPBOX ERROR (load_excel_from_dropbox):", e)
         raise RuntimeError(f"Dropbox download failed: {str(e)}")
 
 
@@ -55,6 +56,7 @@ def get_sheets():
         return jsonify({"sheets": filtered})
 
     except Exception as e:
+        print("DROPBOX ERROR (/api/get-sheets):", e)
         return jsonify({"error": str(e)}), 500
 
 
@@ -64,10 +66,8 @@ def get_sheet_data(sheet_name):
     Returns the data from a specific sheet as JSON.
     """
     try:
-        # Load workbook from Dropbox
         wb = load_excel_from_dropbox()
 
-        # Convert sheet to DataFrame
         ws = wb[sheet_name]
         data = ws.values
         df = pd.DataFrame(data)
@@ -84,6 +84,7 @@ def get_sheet_data(sheet_name):
         return jsonify(result)
 
     except Exception as e:
+        print("DROPBOX ERROR (/api/get-sheet-data):", e)
         return jsonify({"error": str(e)}), 500
 
 
