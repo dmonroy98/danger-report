@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danger Report</title>
+
+    <style>
+        :root {
+            --bg: #ffffff;
+            --text: #1c1c1e;
+            --card: rgba(255, 255, 255, 0.65);
+            --border: rgba(0, 0, 0, 0.15);
+            --blur: saturate(180%) blur(20px);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #1c1c1e;
+                --text: #f5f5f7;
+                --card: rgba(44, 44, 46, 0.55);
+                --border: rgba(255, 255, 255, 0.15);
+            }
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial;
+            animation: fadeIn 0.6s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Frosted header */
+        .header {
+            position: sticky;
+            top: 0;
+            backdrop-filter: var(--blur);
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 24px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        /* Centered content */
+        .container {
+            max-width: 600px;
+            margin: 80px auto;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .logo {
+            width: 90px;
+            height: 90px;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .description {
+            font-size: 18px;
+            margin-bottom: 30px;
+            opacity: 0.85;
+            line-height: 1.5;
+        }
+
+        .instructor-select {
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            font-size: 16px;
+            outline: none;
+            width: 100%;
+            max-width: 320px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <h1>Danger Report</h1>
+</div>
+
+<div class="container">
+
+    <!-- Logo -->
+    <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/3/3a/Logo_placeholder.png" alt="Logo">
+
+    <!-- Welcome text -->
+    <div class="description">
+        Welcome to the Danger Report dashboard.  
+        Select an instructor below to view their active student risk report.
+    </div>
+
+    <!-- Instructor dropdown -->
+    <select id="instructorSelect" class="instructor-select">
+        <option value="">Select an instructor…</option>
+        {% for name in instructors|sort %}
+            <option value="{{ name }}">{{ name }}</option>
+        {% endfor %}
+    </select>
+
+</div>
+
+<script>
+/* Redirect to danger report when instructor selected */
+document.getElementById("instructorSelect").addEventListener("change", function () {
+    if (this.value) {
+        const selected = encodeURIComponent(this.value);
+        window.location = `/danger-report?instructor=${selected}`;
+    }
+});
+</script>
+
+</body>
+</html>
