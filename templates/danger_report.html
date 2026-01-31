@@ -4,19 +4,31 @@
     <title>Danger Report</title>
     <style>
         body { 
-            font-family: Arial, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             padding: 20px; 
-            background: #fafafa;
+            background: #F5F5F7;
+            color: #1C1C1E;
         }
 
+        /* Frosted glass header */
         h1 {
             margin-bottom: 10px;
+            font-weight: 600;
+            padding: 12px 20px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+            display: inline-block;
         }
 
         select {
-            padding: 8px;
+            padding: 8px 12px;
             font-size: 14px;
-            margin-right: 10px;
+            border-radius: 8px;
+            border: 1px solid #C7C7CC;
+            background: #FFFFFF;
         }
 
         #searchContainer {
@@ -26,37 +38,63 @@
         }
 
         #searchBox {
-            padding: 8px;
-            width: 250px;
+            padding: 8px 12px;
+            width: 260px;
             font-size: 14px;
+            border-radius: 8px;
+            border: 1px solid #C7C7CC;
+            background: #FFFFFF;
         }
 
+        /* Apple-style table */
         table { 
-            border-collapse: collapse; 
+            border-collapse: separate;
+            border-spacing: 0;
             width: 100%; 
-            margin-top: 10px; 
+            margin-top: 15px; 
             background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+            opacity: 0;
+            transition: opacity 0.35s ease;
         }
 
-        th, td { 
-            border: 1px solid #ccc; 
-            padding: 8px; 
-            font-size: 14px;
+        table.loaded {
+            opacity: 1;
         }
 
-        th { 
-            background: #f0f0f0; 
-            font-weight: bold;
+        th {
+            background: #F2F2F7;
+            font-weight: 600;
+            padding: 12px;
+            border-bottom: 1px solid #E5E5EA;
+            text-align: left;
         }
 
-        /* Row colors */
-        .day-m  { background-color: #d6eaff; }
-        .day-tu { background-color: #d9f7d9; }
-        .day-w  { background-color: #fff9cc; }
-        .day-th { background-color: #ffe6cc; }
-        .day-f  { background-color: #f0e6ff; }
-        .day-sa { background-color: #ffe0eb; }
-        .day-su { background-color: #e6e6e6; }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #E5E5EA;
+            transition: background-color 0.2s ease;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Subtle macOS hover effect */
+        tr:hover td {
+            background-color: rgba(0,0,0,0.04);
+        }
+
+        /* Apple-inspired row colors */
+        .day-m  { background-color: #F2F2F7; }
+        .day-tu { background-color: #D1E3FF; }
+        .day-w  { background-color: #D7F5E9; }
+        .day-th { background-color: #FFF2CC; }
+        .day-f  { background-color: #FFE5E7; }
+        .day-sa { background-color: #EDEBFF; }
+        .day-su { background-color: #FDE2C8; }
     </style>
 </head>
 <body>
@@ -95,44 +133,42 @@
 
         // Load sheet data
         function loadSheet(sheetName) {
+            const table = document.getElementById("dataTable");
+            table.classList.remove("loaded"); // fade-out
+
             fetch(`/api/get-sheet-data/${sheetName}`)
                 .then(response => response.json())
                 .then(data => {
-                    const table = document.getElementById("dataTable");
 
                     if (!data.columns) {
                         table.innerHTML = "<tr><td>Error loading data</td></tr>";
+                        table.classList.add("loaded");
                         return;
                     }
 
                     document.getElementById("searchContainer").style.display = "block";
 
-                    // Identify helper column indexes
                     const dayCodeIndex = data.columns.indexOf("__day_code");
                     const daySortIndex = data.columns.indexOf("__day_sort");
                     const dayColorIndex = data.columns.indexOf("__day_color");
 
-                    // Sort rows by __day_sort
                     data.rows.sort((a, b) => {
                         return Number(a[daySortIndex]) - Number(b[daySortIndex]);
                     });
 
-                    // Build table header (hide helper columns)
                     let html = "<tr>";
                     data.columns.forEach((c, i) => {
-                        if (c.startsWith("__")) return; // hide helper columns
+                        if (c.startsWith("__")) return;
                         html += `<th>${c}</th>`;
                     });
                     html += "</tr>";
 
-                    // Build table rows
                     data.rows.forEach(row => {
                         const colorClass = row[dayColorIndex];
-
                         html += `<tr class="${colorClass}">`;
 
                         row.forEach((cell, i) => {
-                            if (data.columns[i].startsWith("__")) return; // hide helper columns
+                            if (data.columns[i].startsWith("__")) return;
                             html += `<td>${cell}</td>`;
                         });
 
@@ -140,6 +176,11 @@
                     });
 
                     table.innerHTML = html;
+
+                    // fade-in
+                    setTimeout(() => {
+                        table.classList.add("loaded");
+                    }, 50);
 
                     applySearchFilter();
                 });
