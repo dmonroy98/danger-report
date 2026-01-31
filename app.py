@@ -7,26 +7,50 @@ import dropbox
 
 app = Flask(__name__)
 
-# Dropbox settings
-DROPBOX_TOKEN = os.getenv("DROPBOX_TOKEN")  # Stored securely in Render
-DROPBOX_FILE_PATH = "/Danger Report Master.xlsm"  # Path inside Dropbox
+# Dropbox settings (stored securely in Render)
+DROPBOX_REFRESH_TOKEN = os.getenv("DROPBOX_REFRESH_TOKEN")
+DROPBOX_APP_KEY = os.getenv("DROPBOX_APP_KEY")
+DROPBOX_APP_SECRET = os.getenv("DROPBOX_APP_SECRET")
+
+# Path inside your App Folder (correct format)
+DROPBOX_FILE_PATH = "/Danger Report Master.xlsm"
+
+
+# Day mapping for sorting
+DAY_ORDER = {
+    "M": 1,
+    "Tu": 2,
+    "W": 3,
+    "Th": 4,
+    "F": 5,
+    "Sa": 6,
+    "Su": 7
+}
+
+
+def extract_day_code(class_name):
+    """Extracts the last token from Class Name (e.g., 'Sa', 'M', 'Tu')."""
+    if not isinstance(class_name, str):
+        return ""
+    return class_name.split()[-1]
 
 
 def load_excel_from_dropbox():
     """
-    Downloads the Excel file from Dropbox using the Dropbox API
+    Downloads the Excel file from Dropbox using refresh-token authentication
     and returns an openpyxl workbook object.
     """
     try:
-        # Debug: confirm token exists
-        print("DEBUG: DROPBOX_TOKEN exists:", DROPBOX_TOKEN is not None)
-
-        # Debug: show path being requested
+        print("DEBUG: Using refresh-token Dropbox auth")
         print("DEBUG: Attempting to download:", DROPBOX_FILE_PATH)
 
-        dbx = dropbox.Dropbox(DROPBOX_TOKEN)
+        # Dropbox client using permanent refresh-token flow
+        dbx = dropbox.Dropbox(
+            oauth2_refresh_token=DROPBOX_REFRESH_TOKEN,
+            app_key=DROPBOX_APP_KEY,
+            app_secret=DROPBOX_APP_SECRET
+        )
 
-        # Attempt download
         metadata, res = dbx.files_download(DROPBOX_FILE_PATH)
         file_bytes = res.content
 
@@ -34,7 +58,6 @@ def load_excel_from_dropbox():
         return wb
 
     except Exception as e:
-        # Full debug output
         print("DROPBOX ERROR (load_excel_from_dropbox):", repr(e))
         raise RuntimeError(f"Dropbox download failed: {repr(e)}")
 
@@ -52,8 +75,8 @@ def danger_report():
 @app.route("/api/get-sheets")
 def get_sheets():
     """
-    Returns all sheet names EXCEPT any sheet that contains the word 'combined'
-    (case-insensitive, handles trailing spaces, hidden characters, etc.)
+    Returns all sheet names EXCEPT any sheet containing 'combined'
+    (case-insensitive).
     """
     try:
         wb = load_excel_from_dropbox()
@@ -71,11 +94,12 @@ def get_sheets():
 @app.route("/api/get-sheet-data/<sheet_name>")
 def get_sheet_data(sheet_name):
     """
-    Returns the data from a specific sheet as JSON.
+    Returns the data from a specific sheet as JSON, including:
+    - __day_code (M, Tu, W, Th, F, Sa, Su)
+    - __day_sort (1–7)
     """
     try:
         wb = load_excel_from_dropbox()
-
         ws = wb[sheet_name]
         data = ws.values
         df = pd.DataFrame(data)
@@ -83,6 +107,14 @@ def get_sheet_data(sheet_name):
         # First row becomes header
         df.columns = df.iloc[0]
         df = df[1:]
+
+        # Add day code + numeric sort order
+        if "Class Name" in df.columns:
+            df["__day_code"] = df["Class Name"].apply(extract_day_code)
+            df["__day_sort"] = df["__day_code"].map(DAY_ORDER).fillna(999)
+        else:
+            df["__day_code"] = ""
+            df["__day_sort"] = 999
 
         result = {
             "columns": list(df.columns),
