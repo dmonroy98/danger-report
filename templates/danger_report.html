@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Danger Report – {{ instructor }}</title>
-
     <style>
         /* ------------------------------
            Apple-style color palette
@@ -15,25 +14,21 @@
             --card: rgba(255, 255, 255, 0.65);
             --border: rgba(0, 0, 0, 0.15);
             --blur: saturate(180%) blur(20px);
-
             --day-tu: rgba(0, 122, 255, 0.12);
             --day-w: rgba(88, 86, 214, 0.12);
             --day-f: rgba(255, 149, 0, 0.12);
         }
-
         @media (prefers-color-scheme: dark) {
             :root {
                 --bg: #1c1c1e;
                 --text: #f5f5f7;
                 --card: rgba(44, 44, 46, 0.55);
                 --border: rgba(255, 255, 255, 0.15);
-
                 --day-tu: rgba(10, 132, 255, 0.18);
                 --day-w: rgba(94, 92, 230, 0.18);
                 --day-f: rgba(255, 159, 10, 0.18);
             }
         }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial;
             margin: 0;
@@ -42,12 +37,10 @@
             color: var(--text);
             animation: fadeIn 0.6s ease;
         }
-
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(6px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
         /* ------------------------------
            Frosted glass header
         ------------------------------ */
@@ -63,13 +56,11 @@
             justify-content: space-between;
             align-items: center;
         }
-
         .header h1 {
             margin: 0;
             font-size: 28px;
             font-weight: 600;
         }
-
         .instructor-select {
             padding: 8px 12px;
             border-radius: 10px;
@@ -78,7 +69,6 @@
             font-size: 15px;
             outline: none;
         }
-
         /* ------------------------------
            Search box
         ------------------------------ */
@@ -94,7 +84,6 @@
             display: block;
             max-width: 900px;
         }
-
         /* ------------------------------
            Table container
         ------------------------------ */
@@ -108,18 +97,15 @@
             backdrop-filter: var(--blur);
             animation: fadeIn 0.8s ease;
         }
-
         table {
             width: 100%;
             border-collapse: collapse;
             font-size: 15px;
         }
-
         th, td {
             padding: 10px 12px;
             border-bottom: 1px solid var(--border);
         }
-
         th {
             cursor: pointer;
             position: sticky;
@@ -129,16 +115,13 @@
             font-weight: 600;
             z-index: 5;
         }
-
         tr:hover {
             background: rgba(0, 0, 0, 0.05);
         }
-
         /* Day color backgrounds */
         tr.day-tu { background: var(--day-tu); }
         tr.day-w { background: var(--day-w); }
         tr.day-f { background: var(--day-f); }
-
         /* ------------------------------
            Export button
         ------------------------------ */
@@ -157,7 +140,6 @@
         .export-btn:hover {
             background: #0062cc;
         }
-
         /* ------------------------------
            Footer
         ------------------------------ */
@@ -169,13 +151,11 @@
         }
     </style>
 </head>
-
 <body>
 
 <!-- Frosted Header -->
 <div class="header">
     <h1>Danger Report – {{ instructor }}</h1>
-
     <select id="instructorSelect" class="instructor-select">
         {% for name in instructors|sort %}
             <option value="{{ name }}" {% if name == instructor %}selected{% endif %}>
@@ -210,11 +190,18 @@ document.getElementById("instructorSelect").addEventListener("change", function 
 });
 
 /* ------------------------------
-   Spotlight-style search
+   Spotlight-style search (robust version)
 --------------------------------*/
 document.getElementById("searchBox").addEventListener("input", function () {
-    const filter = this.value.toLowerCase();
-    const rows = document.querySelectorAll("table tbody tr");
+    const filter = this.value.toLowerCase().trim();
+    const table = document.querySelector("#tableContainer table");
+    if (!table) return;
+
+    // Prefer tbody if exists, otherwise use table directly
+    const tbody = table.querySelector("tbody");
+    const rows = tbody 
+        ? tbody.querySelectorAll("tr")
+        : table.querySelectorAll("tr:not(:first-child)");  // skip header row if no tbody
 
     rows.forEach(row => {
         const text = row.innerText.toLowerCase();
@@ -223,28 +210,31 @@ document.getElementById("searchBox").addEventListener("input", function () {
 });
 
 /* ------------------------------
-   Column sorting
+   Column sorting (robust version)
 --------------------------------*/
-document.querySelectorAll("th").forEach((header, index) => {
+document.querySelectorAll("#tableContainer table th").forEach((header, index) => {
     header.addEventListener("click", () => {
         const table = header.closest("table");
-        const tbody = table.querySelector("tbody");
-        const rows = Array.from(tbody.querySelectorAll("tr"));
+        if (!table) return;
+
+        const tbody = table.querySelector("tbody") || table;
+        const rows = Array.from(tbody.querySelectorAll("tr:not(:first-child)")); // exclude header
+
         const asc = header.classList.toggle("asc");
 
         rows.sort((a, b) => {
             let A, B;
 
-            // Custom sort for Class Name column (index 2)
+            // Special numeric sort for column index 2 (assuming it's the one with numbers in cell 8 / index 7)
             if (index === 2) {
-                A = parseInt(a.children[7].innerText.trim());
-                B = parseInt(b.children[7].innerText.trim());
+                A = parseInt(a.children[7]?.innerText.trim() || "0", 10);
+                B = parseInt(b.children[7]?.innerText.trim() || "0", 10);
                 return asc ? A - B : B - A;
             }
 
-            // Default alphabetical sort
-            A = a.children[index].innerText.trim();
-            B = b.children[index].innerText.trim();
+            // Default text sort
+            A = (a.children[index]?.innerText || "").trim();
+            B = (b.children[index]?.innerText || "").trim();
             return asc ? A.localeCompare(B) : B.localeCompare(A);
         });
 
@@ -258,12 +248,10 @@ document.querySelectorAll("th").forEach((header, index) => {
 function updateAgo() {
     const el = document.getElementById("updatedAt");
     const raw = el.dataset.updated;
-
     const updated = new Date(raw);
     const now = new Date();
     const diffMs = now - updated;
     const diffMin = Math.floor(diffMs / 60000);
-
     let text = "just now";
     if (diffMin === 1) text = "1 minute ago";
     else if (diffMin > 1 && diffMin < 60) text = `${diffMin} minutes ago`;
@@ -271,7 +259,6 @@ function updateAgo() {
         const hours = Math.floor(diffMin / 60);
         text = hours === 1 ? "1 hour ago" : `${hours} hours ago`;
     }
-
     document.getElementById("updatedAgo").innerText = text;
 }
 updateAgo();
@@ -282,15 +269,12 @@ updateAgo();
 function exportPNG() {
     html2canvas(document.querySelector("#tableContainer")).then(canvas => {
         const ctx = canvas.getContext("2d");
-
         const timestamp = new Date().toLocaleString();
         const logo = new Image();
         logo.src = "https://upload.wikimedia.org/wikipedia/commons/3/3a/Logo_placeholder.png";
-
         logo.onload = () => {
             const logoSize = 24;
             const padding = 20;
-
             ctx.drawImage(
                 logo,
                 canvas.width - logoSize - padding,
@@ -298,17 +282,14 @@ function exportPNG() {
                 logoSize,
                 logoSize
             );
-
             ctx.font = "16px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial";
             ctx.fillStyle = "rgba(0,0,0,0.65)";
             ctx.textAlign = "right";
-
             ctx.fillText(
                 timestamp,
                 canvas.width - logoSize - padding - 10,
                 canvas.height - padding
             );
-
             const link = document.createElement("a");
             link.download = "danger-report.png";
             link.href = canvas.toDataURL();
