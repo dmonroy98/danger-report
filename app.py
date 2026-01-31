@@ -1,19 +1,18 @@
 import os
 import pandas as pd
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request, redirect, flash
 from openpyxl import load_workbook
-from io import BytesIO
-import dropbox
 
 app = Flask(__name__)
 
-# Dropbox settings (stored securely in Render)
-DROPBOX_REFRESH_TOKEN = os.getenv("DROPBOX_REFRESH_TOKEN")
-DROPBOX_APP_KEY = os.getenv("DROPBOX_APP_KEY")
-DROPBOX_APP_SECRET = os.getenv("DROPBOX_APP_SECRET")
+# Secret key for flash messages
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret")
 
-# Path inside your App Folder
-DROPBOX_FILE_PATH = "/Danger Report Master.xlsm"
+# Password stored securely in Render
+UPLOAD_PASSWORD = os.getenv("UPLOAD_PASSWORD")
+
+# Local file path
+LOCAL_FILE_PATH = "data/Danger Report Master.xlsm"
 
 # Day mapping for sorting
 DAY_ORDER = {
@@ -39,33 +38,14 @@ DAY_COLOR = {
 
 
 def extract_day_code(class_name):
-    """Extracts the last token from Class Name (e.g., 'Sa', 'M', 'Tu')."""
     if not isinstance(class_name, str):
         return ""
     return class_name.split()[-1]
 
 
-def load_excel_from_dropbox():
-    """Downloads the Excel file from Dropbox using refresh-token authentication."""
-    try:
-        print("DEBUG: Using refresh-token Dropbox auth")
-        print("DEBUG: Attempting to download:", DROPBOX_FILE_PATH)
-
-        dbx = dropbox.Dropbox(
-            oauth2_refresh_token=DROPBOX_REFRESH_TOKEN,
-            app_key=DROPBOX_APP_KEY,
-            app_secret=DROPBOX_APP_SECRET
-        )
-
-        metadata, res = dbx.files_download(DROPBOX_FILE_PATH)
-        file_bytes = res.content
-
-        wb = load_workbook(filename=BytesIO(file_bytes), data_only=True)
-        return wb
-
-    except Exception as e:
-        print("DROPBOX ERROR (load_excel_from_dropbox):", repr(e))
-        raise RuntimeError(f"Dropbox download failed: {repr(e)}")
+def load_excel_from_local():
+    wb = load_workbook(filename=LOCAL_FILE_PATH, data_only=True)
+    return wb
 
 
 @app.route("/")
@@ -80,34 +60,27 @@ def danger_report():
 
 @app.route("/api/get-sheets")
 def get_sheets():
-    """Returns all sheet names except those containing 'combined'."""
     try:
-        wb = load_excel_from_dropbox()
-
+        wb = load_excel_from_local()
         sheet_names = [s.strip() for s in wb.sheetnames]
         filtered = [s for s in sheet_names if "combined" not in s.lower()]
-
         return jsonify({"sheets": filtered})
-
     except Exception as e:
-        print("DROPBOX ERROR (/api/get-sheets):", repr(e))
+        print("LOCAL FILE ERROR (/api/get-sheets):", repr(e))
         return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/get-sheet-data/<sheet_name>")
 def get_sheet_data(sheet_name):
-    """Returns sheet data + day code + sort order + color class."""
     try:
-        wb = load_excel_from_dropbox()
+        wb = load_excel_from_local()
         ws = wb[sheet_name]
         data = ws.values
         df = pd.DataFrame(data)
 
-        # First row becomes header
         df.columns = df.iloc[0]
         df = df[1:]
 
-        # Add day code, sort order, and color
         if "Class Name" in df.columns:
             df["__day_code"] = df["Class Name"].apply(extract_day_code)
             df["__day_sort"] = df["__day_code"].map(DAY_ORDER).fillna(999)
@@ -125,8 +98,62 @@ def get_sheet_data(sheet_name):
         return jsonify(result)
 
     except Exception as e:
-        print("DROPBOX ERROR (/api/get-sheet-data):", repr(e))
+        print("LOCAL FILE ERROR (/api/get-sheet-data):", repr(e))
         return jsonify({"error": str(e)}), 500
+
+
+# -----------------------------
+# PASSWORD-PROTECTED UPLOAD
+# -----------------------------
+
+@app.route("/upload")
+def upload_page():
+    return render_template("upload.html")
+
+
+@app.route("/upload-file", methods=["POST"])
+def upload_file():
+    password = request.form.get("password")
+    file = request.files.get("file")
+
+    # 1. Validate password
+    if password != UPLOAD_PASSWORD:
+        flash("Invalid password", "error")
+        return redirect("/upload")
+
+    # 2. Validate file presence
+    if not file:
+        flash("No file uploaded", "error")
+        return redirect("/upload")
+
+    # 3. Validate file extension
+    filename = file.filename.lower()
+    if not filename.endswith((".xlsm", ".xlsx")):
+        flash("Invalid file type. Must be .xlsm or .xlsx", "error")
+        return redirect("/upload")
+
+    # 4. Ensure data directory exists
+    data_dir = os.path.dirname(LOCAL_FILE_PATH)
+    os.makedirs(data_dir, exist_ok=True)
+
+    # 5. Optional: Backup old file
+    if os.path.exists(LOCAL_FILE_PATH):
+        backup_path = LOCAL_FILE_PATH + ".backup"
+        try:
+            os.replace(LOCAL_FILE_PATH, backup_path)
+        except Exception as e:
+            print("Backup failed:", e)
+
+    # 6. Save new file
+    try:
+        file.save(LOCAL_FILE_PATH)
+    except Exception as e:
+        flash(f"Failed to save file: {e}", "error")
+        return redirect("/upload")
+
+    # 7. Success message
+    flash("File uploaded successfully!", "success")
+    return redirect("/danger-report")
 
 
 if __name__ == "__main__":
