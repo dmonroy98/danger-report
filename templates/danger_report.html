@@ -3,16 +3,17 @@
 <head>
     <title>Danger Report</title>
     <style>
-        body { 
+        body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            padding: 20px; 
+            padding: 20px;
             background: #F5F5F7;
             color: #1C1C1E;
+            text-align: center;
         }
 
         /* Frosted glass header */
         h1 {
-            margin-bottom: 10px;
+            margin-bottom: 20px;
             font-weight: 600;
             padding: 12px 20px;
             border-radius: 12px;
@@ -23,18 +24,70 @@
             display: inline-block;
         }
 
-        select {
-            padding: 8px 12px;
-            font-size: 14px;
-            border-radius: 8px;
-            border: 1px solid #C7C7CC;
-            background: #FFFFFF;
+        /* Logo */
+        #logo {
+            width: 120px;
+            opacity: 0.9;
+            margin-bottom: 15px;
         }
 
+        /* Landing message */
+        #landingMessage {
+            margin-top: 40px;
+            color: #3A3A3C;
+            font-size: 18px;
+        }
+
+        /* Spotlight-style dropdown container */
+        #dropdownContainer {
+            position: relative;
+            width: 300px;
+            margin: 0 auto;
+            text-align: left;
+        }
+
+        /* Spotlight search input */
+        #instructorSearch {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid #C7C7CC;
+            background: #FFFFFF;
+            font-size: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+
+        /* Dropdown list */
+        #dropdownList {
+            position: absolute;
+            top: 48px;
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+            max-height: 220px;
+            overflow-y: auto;
+            display: none;
+            z-index: 10;
+        }
+
+        .dropdown-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .dropdown-item:hover,
+        .dropdown-item.active {
+            background: rgba(0,0,0,0.06);
+        }
+
+        /* Search bar above table */
         #searchContainer {
             margin-top: 15px;
             margin-bottom: 10px;
             display: none;
+            text-align: left;
         }
 
         #searchBox {
@@ -47,21 +100,26 @@
         }
 
         /* Apple-style table */
-        table { 
+        table {
             border-collapse: separate;
             border-spacing: 0;
-            width: 100%; 
-            margin-top: 15px; 
+            width: 100%;
+            margin-top: 15px;
             background: white;
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 4px 14px rgba(0,0,0,0.08);
             opacity: 0;
             transition: opacity 0.35s ease;
+            display: none;
         }
 
         table.loaded {
             opacity: 1;
+        }
+
+        table.fade-out {
+            opacity: 0;
         }
 
         th {
@@ -82,27 +140,87 @@
             border-bottom: none;
         }
 
-        /* Subtle macOS hover effect */
         tr:hover td {
             background-color: rgba(0,0,0,0.04);
         }
 
         /* Ultra-soft Apple-inspired row colors */
-        .day-m  { background-color: #F7F7F8; }  /* Monday - neutral gray */
-        .day-tu { background-color: #E7EEF8; } /* Tuesday - soft blue-gray */
-        .day-w  { background-color: #E9F5EF; } /* Wednesday - mint-gray */
-        .day-th { background-color: #FAF4E3; } /* Thursday - cream */
-        .day-f  { background-color: #F8EDEF; } /* Friday - rose-gray */
-        .day-sa { background-color: #F1EEFA; } /* Saturday - lavender-gray */
-        .day-su { background-color: #F7EDE3; } /* Sunday - peach-gray */
+        .day-m  { background-color: #F7F7F8; }
+        .day-tu { background-color: #E7EEF8; }
+        .day-w  { background-color: #E9F5EF; }
+        .day-th { background-color: #FAF4E3; }
+        .day-f  { background-color: #F8EDEF; }
+        .day-sa { background-color: #F1EEFA; }
+        .day-su { background-color: #F7EDE3; }
+
+        /* DARK MODE */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #1C1C1E;
+                color: #F2F2F7;
+            }
+
+            h1 {
+                background: rgba(40,40,40,0.55);
+                box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+            }
+
+            #landingMessage {
+                color: #D1D1D6;
+            }
+
+            #instructorSearch,
+            #searchBox {
+                background: #2C2C2E;
+                color: #F2F2F7;
+                border: 1px solid #3A3A3C;
+            }
+
+            #dropdownList {
+                background: #2C2C2E;
+                box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+            }
+
+            .dropdown-item:hover,
+            .dropdown-item.active {
+                background: rgba(255,255,255,0.08);
+            }
+
+            table {
+                background: #2C2C2E;
+                box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+            }
+
+            th {
+                background: #3A3A3C;
+                border-bottom: 1px solid #48484A;
+            }
+
+            td {
+                border-bottom: 1px solid #3A3A3C;
+            }
+
+            tr:hover td {
+                background-color: rgba(255,255,255,0.06);
+            }
+        }
     </style>
 </head>
 <body>
 
     <h1>Danger Report</h1>
 
-    <label>Select Instructor:</label>
-    <select id="sheetDropdown"></select>
+    <!-- Landing Screen -->
+    <div id="landingMessage">
+        <img id="logo" src="/static/logo.png" alt="Logo">
+        <p>Your daily Student report. Organized. Clear. Instructor‑focused.</p>
+    </div>
+
+    <!-- Spotlight-style dropdown -->
+    <div id="dropdownContainer">
+        <input type="text" id="instructorSearch" placeholder="Search instructors...">
+        <div id="dropdownList"></div>
+    </div>
 
     <div id="searchContainer">
         <input type="text" id="searchBox" placeholder="Search this report...">
@@ -111,93 +229,121 @@
     <table id="dataTable"></table>
 
     <script>
-        // Load sheet names
+        let instructors = [];
+        let activeIndex = -1;
+
+        // Load instructors
         fetch("/api/get-sheets")
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
-                const dropdown = document.getElementById("sheetDropdown");
+                if (!data.sheets) return;
 
-                if (!data.sheets) {
-                    dropdown.innerHTML = "<option>Error loading sheets</option>";
-                    return;
-                }
-
-                dropdown.innerHTML = data.sheets
-                    .map(s => `<option value="${s}">${s}</option>`)
-                    .join("");
-
-                if (data.sheets.length > 0) {
-                    loadSheet(data.sheets[0]);
-                }
+                instructors = data.sheets.sort((a, b) => a.localeCompare(b));
+                renderDropdown(instructors);
             });
 
-        // Load sheet data
-        function loadSheet(sheetName) {
-            const table = document.getElementById("dataTable");
-            table.classList.remove("loaded"); // fade-out
+        function renderDropdown(list) {
+            const dropdown = document.getElementById("dropdownList");
+            dropdown.innerHTML = list.map(i => `<div class="dropdown-item">${i}</div>`).join("");
+            dropdown.style.display = list.length ? "block" : "none";
 
-            fetch(`/api/get-sheet-data/${sheetName}`)
-                .then(response => response.json())
-                .then(data => {
-
-                    if (!data.columns) {
-                        table.innerHTML = "<tr><td>Error loading data</td></tr>";
-                        table.classList.add("loaded");
-                        return;
-                    }
-
-                    document.getElementById("searchContainer").style.display = "block";
-
-                    const dayCodeIndex = data.columns.indexOf("__day_code");
-                    const daySortIndex = data.columns.indexOf("__day_sort");
-                    const dayColorIndex = data.columns.indexOf("__day_color");
-
-                    data.rows.sort((a, b) => {
-                        return Number(a[daySortIndex]) - Number(b[daySortIndex]);
-                    });
-
-                    let html = "<tr>";
-                    data.columns.forEach((c, i) => {
-                        if (c.startsWith("__")) return;
-                        html += `<th>${c}</th>`;
-                    });
-                    html += "</tr>";
-
-                    data.rows.forEach(row => {
-                        const colorClass = row[dayColorIndex];
-                        html += `<tr class="${colorClass}">`;
-
-                        row.forEach((cell, i) => {
-                            if (data.columns[i].startsWith("__")) return;
-                            html += `<td>${cell}</td>`;
-                        });
-
-                        html += "</tr>";
-                    });
-
-                    table.innerHTML = html;
-
-                    // fade-in
-                    setTimeout(() => {
-                        table.classList.add("loaded");
-                    }, 50);
-
-                    applySearchFilter();
-                });
+            document.querySelectorAll(".dropdown-item").forEach(item => {
+                item.onclick = () => selectInstructor(item.innerText);
+            });
         }
 
-        // Search filter
-        function applySearchFilter() {
-            const query = document.getElementById("searchBox").value.toLowerCase();
+        function selectInstructor(name) {
+            document.getElementById("instructorSearch").value = name;
+            document.getElementById("dropdownList").style.display = "none";
+            loadSheet(name);
+        }
+
+        // Spotlight search filtering
+        document.getElementById("instructorSearch").addEventListener("input", function () {
+            const q = this.value.toLowerCase();
+            const filtered = instructors.filter(i => i.toLowerCase().includes(q));
+            activeIndex = -1;
+            renderDropdown(filtered);
+        });
+
+        // Keyboard navigation
+        document.addEventListener("keydown", function (e) {
+            const items = document.querySelectorAll(".dropdown-item");
+            if (!items.length) return;
+
+            if (e.key === "ArrowDown") {
+                activeIndex = (activeIndex + 1) % items.length;
+            } else if (e.key === "ArrowUp") {
+                activeIndex = (activeIndex - 1 + items.length) % items.length;
+            } else if (e.key === "Enter" && activeIndex >= 0) {
+                selectInstructor(items[activeIndex].innerText);
+            }
+
+            items.forEach((item, i) => item.classList.toggle("active", i === activeIndex));
+        });
+
+        // Load sheet data with fade-out + fade-in
+        function loadSheet(sheetName) {
             const table = document.getElementById("dataTable");
-            const rows = table.getElementsByTagName("tr");
+            const landing = document.getElementById("landingMessage");
+            const search = document.getElementById("searchContainer");
+
+            landing.style.display = "none";
+            search.style.display = "block";
+
+            table.classList.remove("loaded");
+            table.classList.add("fade-out");
+
+            setTimeout(() => {
+                fetch(`/api/get-sheet-data/${sheetName}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (!data.columns) return;
+
+                        const daySortIndex = data.columns.indexOf("__day_sort");
+                        const dayColorIndex = data.columns.indexOf("__day_color");
+
+                        data.rows.sort((a, b) => Number(a[daySortIndex]) - Number(b[daySortIndex]));
+
+                        let html = "<tr>";
+                        data.columns.forEach((c, i) => {
+                            if (!c.startsWith("__")) html += `<th>${c}</th>`;
+                        });
+                        html += "</tr>";
+
+                        data.rows.forEach(row => {
+                            const colorClass = row[dayColorIndex];
+                            html += `<tr class="${colorClass}">`;
+                            row.forEach((cell, i) => {
+                                if (!data.columns[i].startsWith("__")) html += `<td>${cell}</td>`;
+                            });
+                            html += "</tr>";
+                        });
+
+                        table.innerHTML = html;
+                        table.style.display = "table";
+
+                        setTimeout(() => {
+                            table.classList.remove("fade-out");
+                            table.classList.add("loaded");
+                        }, 50);
+
+                        applySearchFilter();
+                    });
+            }, 200);
+        }
+
+        // Table search
+        function applySearchFilter() {
+            const q = document.getElementById("searchBox").value.toLowerCase();
+            const rows = document.getElementById("dataTable").getElementsByTagName("tr");
 
             for (let i = 1; i < rows.length; i++) {
                 const cells = rows[i].getElementsByTagName("td");
                 let match = false;
 
                 for (let c = 0; c < cells.length; c++) {
-                    if (cells[c].innerText.toLowerCase().includes(query)) {
+                    if (cells[c].innerText.toLowerCase().includes(q)) {
                         match = true;
                         break;
                     }
@@ -208,10 +354,6 @@
         }
 
         document.getElementById("searchBox").addEventListener("input", applySearchFilter);
-
-        document.getElementById("sheetDropdown").addEventListener("change", function () {
-            loadSheet(this.value);
-        });
     </script>
 
 </body>
