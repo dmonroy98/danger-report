@@ -1,27 +1,27 @@
+# app.py (updated with custom sorting on Class Name's day code)
 from flask import Flask, render_template, request
 import pandas as pd
 import os
 import glob
 from datetime import datetime
 import traceback
+import re
 
 app = Flask(__name__)
 
 # ─── Configuration ──────────────────────────────────────────────────────────────
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
-# Find any common Excel file in data/ (*.xlsx, *.xlsm, *.xls, *.xlsb)
+# Find any common Excel file (*.xls*, covers xlsx, xlsm, etc.)
 excel_files = glob.glob(os.path.join(DATA_DIR, '*.xls*'))
 
 if not excel_files:
     EXCEL_PATH = None
     INSTRUCTORS = ["No Excel file found in /data"]
     print("ERROR: No Excel file (*.xls*, *.xlsx, *.xlsm, etc.) found in data/ folder")
-    print(f"Expected path example: {os.path.join(DATA_DIR, 'yourfile.xlsm')}")
 else:
-    # Sort to prefer .xlsx or .xlsm over .xls/.xlsb if multiple (optional but nice)
     excel_files.sort(key=lambda f: (not f.lower().endswith(('.xlsx', '.xlsm')), f))
-    EXCEL_PATH = excel_files[0]  # take the "best" one
+    EXCEL_PATH = excel_files[0]
     print(f"Using Excel file: {EXCEL_PATH}")
     try:
         excel_file = pd.ExcelFile(EXCEL_PATH)
@@ -32,6 +32,30 @@ else:
         INSTRUCTORS = ["Excel file found but cannot be read"]
         EXCEL_PATH = None
 
+# ─── Custom sorting logic for Class Name day codes ──────────────────────────────
+# Day code to weekday number for sorting (Monday=0 ... Sunday=6)
+DAY_ORDER = {
+    'M': 0,      # Monday
+    'Tu': 1,     # Tuesday
+    'T': 1,      # Sometimes 'T' for Tuesday
+    'W': 2,      # Wednesday
+    'Th': 3,     # Thursday
+    'F': 4,      # Friday
+    'Sa': 5,     # Saturday
+    'Su': 6,     # Sunday
+    # Add more if needed, e.g., 'S': 5 for Saturday
+}
+
+def extract_day_code(class_name):
+    if pd.isna(class_name):
+        return None
+    # Extract last 1-2 uppercase letters after space or end of string
+    match = re.search(r'\s*([A-Z]{1,2})$', str(class_name).strip())
+    if match:
+        code = match.group(1)
+        return DAY_ORDER.get(code, 99)  # 99 = unknown, goes last
+    return 99  # No code found
+
 # ─── Helper to generate table HTML ─────────────────────────────────────────────
 def get_table_html(instructor):
     if EXCEL_PATH is None:
@@ -41,21 +65,22 @@ def get_table_html(instructor):
         if instructor not in INSTRUCTORS:
             return f'<p style="color: red;">Sheet for "{instructor}" not found in Excel.</p>'
 
-        # Read the specific sheet (openpyxl handles .xlsm fine)
         df = pd.read_excel(EXCEL_PATH, sheet_name=instructor, engine='openpyxl')
-
-        # Clean up
         df = df.fillna('')
 
-        # Sort by Date descending if column exists
-        if 'Date' in df.columns:
-            try:
+        # Add sort key column based on day code in Class Name (assuming column named 'Class Name')
+        if 'Class Name' in df.columns:
+            df['sort_day'] = df['Class Name'].apply(extract_day_code)
+            # Sort primarily by day code, then by Class Name itself, then Date if present
+            sort_cols = ['sort_day', 'Class Name']
+            if 'Date' in df.columns:
                 df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
-                df = df.sort_values('Date', ascending=False)
-            except Exception as sort_err:
-                print(f"Date sorting failed for {instructor}: {sort_err}")
+                sort_cols.append('Date')  # secondary sort by date descending
+            df = df.sort_values(by=sort_cols, ascending=[True, True, False])
+            df = df.drop(columns=['sort_day'])  # clean up temp column
+        else:
+            print(f"Warning: 'Class Name' column not found for {instructor} — no custom sorting applied")
 
-        # Generate nice Bootstrap table
         table_html = df.to_html(
             index=False,
             classes="table table-striped table-bordered table-hover",
@@ -88,13 +113,12 @@ def danger_report():
         updated_at=updated_at
     )
 
-
 @app.route('/')
 def index():
-    instructor = INSTRUCTORS[0] if INSTRUCTORS and INSTRUCTORS[0] != "No Excel file found in /data" else ""
+    instructor = INSTRUCTORS[0] if INSTRUCTORS and INSTRUCTORS[0] not in ["No Excel file found in /data", "Excel file found but cannot be read"] else ""
     table_html = "<p style='padding: 20px;'>Welcome to Danger Report — please select an instructor above.</p>"
 
-    if instructor and instructor not in ["No Excel file found in /data", "Excel file found but cannot be read"]:
+    if instructor:
         table_html = get_table_html(instructor)
 
     updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -106,7 +130,6 @@ def index():
         table_html=table_html,
         updated_at=updated_at
     )
-
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
