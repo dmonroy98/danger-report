@@ -18,8 +18,15 @@ def load_excel_from_dropbox():
     and returns an openpyxl workbook object.
     """
     try:
+        # Debug: confirm token exists
+        print("DEBUG: DROPBOX_TOKEN exists:", DROPBOX_TOKEN is not None)
+
+        # Debug: show path being requested
+        print("DEBUG: Attempting to download:", DROPBOX_FILE_PATH)
+
         dbx = dropbox.Dropbox(DROPBOX_TOKEN)
 
+        # Attempt download
         metadata, res = dbx.files_download(DROPBOX_FILE_PATH)
         file_bytes = res.content
 
@@ -27,8 +34,9 @@ def load_excel_from_dropbox():
         return wb
 
     except Exception as e:
-        print("DROPBOX ERROR (load_excel_from_dropbox):", e)
-        raise RuntimeError(f"Dropbox download failed: {str(e)}")
+        # Full debug output
+        print("DROPBOX ERROR (load_excel_from_dropbox):", repr(e))
+        raise RuntimeError(f"Dropbox download failed: {repr(e)}")
 
 
 @app.route("/")
@@ -56,7 +64,7 @@ def get_sheets():
         return jsonify({"sheets": filtered})
 
     except Exception as e:
-        print("DROPBOX ERROR (/api/get-sheets):", e)
+        print("DROPBOX ERROR (/api/get-sheets):", repr(e))
         return jsonify({"error": str(e)}), 500
 
 
@@ -84,7 +92,7 @@ def get_sheet_data(sheet_name):
         return jsonify(result)
 
     except Exception as e:
-        print("DROPBOX ERROR (/api/get-sheet-data):", e)
+        print("DROPBOX ERROR (/api/get-sheet-data):", repr(e))
         return jsonify({"error": str(e)}), 500
 
 
