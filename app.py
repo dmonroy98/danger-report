@@ -86,6 +86,20 @@ def danger_report():
     if current:
         ws = wb[current]
         data = list(ws.values)
+
+	if current:
+        ws = wb[current]
+        data = list(ws.values)
+        
+        # --- NEW DEBUG LINES ---
+        print(f"DEBUG: Sheet '{current}' Total Rows Read: {len(data)}")
+        if len(data) > 1:
+            print(f"DEBUG: Sample Row 2 Data: {data[1]}")
+        else:
+            print("DEBUG: Sheet appears to contain ONLY the header row!")
+        # -----------------------
+
+   ..	
         
         # --- ROBUST HEADER FINDER ---
         # We look for a row that contains "Class Name" AND "Instructors"
