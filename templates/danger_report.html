@@ -147,6 +147,19 @@
             transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
         }
 
+
+		/* Allow table to shrink and wrap on desktop */
+	.table {
+	    width: 100%;
+  	  table-layout: auto;
+	}
+
+.table th,
+.table td {
+    white-space: normal !important;
+    word-break: break-word;
+}
+
         .search-input:focus {
             outline: none;
             border-color: var(--accent);
