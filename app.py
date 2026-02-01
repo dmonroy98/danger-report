@@ -50,7 +50,7 @@ def extract_day_code(class_name):
         return DAY_ORDER.get(code, 99)
     return 99
 
-# ─── Generate table HTML ────────────────────────────────────────────────────────
+# ─── Generate table HTML with updated Apple-inspired colors ─────────────────────
 def get_table_html(instructor):
     if EXCEL_PATH is None:
         return '<p style="color: red; font-weight: bold; padding: 20px;">No valid Excel file available in /data folder.</p>'
@@ -93,11 +93,18 @@ def get_table_html(instructor):
         else:
             print(f"Warning: No 'Class Name' column → no day sorting for {instructor}")
 
+        # ─── Apple-inspired muted palette ───────────────────────────────────────
         def row_background(row):
             day_num = extract_day_code(row.get('Class Name', pd.NA))
             colors = {
-                0: '#e6f3ff', 1: '#fff0e6', 2: '#f0fff0', 3: '#fff5e6',
-                4: '#f8e6ff', 5: '#f0f8ff', 6: '#fffafa', 99: '#f5f5f5'
+                0: '#f0f5ff',   # Monday     very pale blue-gray
+                1: '#fff4f0',   # Tuesday    extremely pale warm peach
+                2: '#f0fff4',   # Wednesday  very pale mint
+                3: '#fffaf0',   # Thursday   pale cream / warm off-white
+                4: '#f8f0ff',   # Friday     extremely pale lavender
+                5: '#f5f9ff',   # Saturday   pale cool blue-white
+                6: '#fdfdfd',   # Sunday     almost pure white with tiny warmth
+                99: '#f8f8f8'   # Unknown    very light neutral gray
             }
             bg_color = colors.get(day_num, '#ffffff')
             return [f'background-color: {bg_color}'] * len(row)
@@ -122,7 +129,7 @@ def get_table_html(instructor):
             error_msg += f'<p>Available columns: {", ".join(df.columns.tolist())}</p>'
         return error_msg
 
-# ─── Unified route ──────────────────────────────────────────────────────────────
+# ─── Unified route – no auto-display of first sheet ─────────────────────────────
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def danger_report(path=''):
@@ -130,25 +137,45 @@ def danger_report(path=''):
 
     print(f"[DEBUG] Requested: /{path} ?instructor='{instructor_param}'")
 
-    instructor = instructor_param
+    instructor = None
+    table_html = None
+    message = None
 
-    if not instructor or instructor not in INSTRUCTORS:
-        if instructor_param:
-            print(f"[WARN] '{instructor_param}' not found in sheets")
-        instructor = INSTRUCTORS[0] if INSTRUCTORS and INSTRUCTORS[0] not in [
-            "No Excel file found in /data",
-            "Excel file found but cannot be read"
-        ] else "No Data Available"
+    if instructor_param:
+        if instructor_param in INSTRUCTORS:
+            instructor = instructor_param
+            table_html = get_table_html(instructor)
+        else:
+            print(f"[WARN] Requested instructor '{instructor_param}' not found in sheets")
+            message = f'''
+            <div style="text-align: center; padding: 32px; background: #fff5f5; border-radius: 12px; margin: 32px auto; max-width: 600px; border: 1px solid #ffcccc;">
+                <h3 style="color: #c41e3a; margin-bottom: 16px;">Instructor not found</h3>
+                <p style="margin-bottom: 20px;">"{instructor_param}" does not match any sheet in the Excel file.</p>
+                <p style="color: #555;">Please select a valid instructor from the dropdown above.</p>
+            </div>
+            '''
+    else:
+        message = '''
+        <div style="text-align: center; padding: 48px 24px; background: #f9f9f9; border-radius: 18px; margin: 48px auto; max-width: 720px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+            <h2 style="margin-bottom: 20px; font-size: 28px;">Welcome to Danger Report</h2>
+            <p style="font-size: 17px; color: #444; max-width: 580px; margin: 0 auto 28px;">
+                Select an instructor from the dropdown menu above to view their class danger report data.
+            </p>
+            <p style="color: #777; font-size: 15px;">
+                Data is loaded from the Excel file located in the /data folder.
+            </p>
+        </div>
+        '''
 
-    table_html = get_table_html(instructor)
     updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     return render_template(
         'danger_report.html',
-        instructor=instructor,
+        instructor=instructor or "Select an Instructor",
         instructors=INSTRUCTORS,
         table_html=table_html,
-        updated_at=updated_at
+        updated_at=updated_at,
+        message=message or ""
     )
 
 if __name__ == '__main__':

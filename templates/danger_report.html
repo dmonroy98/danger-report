@@ -5,29 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Danger Report – {{ instructor }}</title>
 
-    <!-- System font stack similar to Apple's San Francisco -->
     <style>
         :root {
-            --bg-primary:       #f5f5f7;
-            --bg-secondary:     #ffffff;
-            --text-primary:     #1d1d1f;
-            --text-secondary:   #6e6e73;
-            --border-color:     #d2d2d7;
-            --accent-blue:      #0071e3;
-            --accent-blue-hover:#0066cc;
-            --shadow-sm:        0 1px 3px rgba(0,0,0,0.08);
-            --shadow-md:        0 4px 12px rgba(0,0,0,0.10);
-            --radius-lg:        18px;
-            --radius-md:        12px;
-            --radius-sm:        8px;
+            --bg: #f5f5f7;
+            --card-bg: #ffffff;
+            --text: #1d1d1f;
+            --text-secondary: #6e6e73;
+            --border: #d2d2d7;
+            --accent: #007aff;
+            --accent-hover: #0066cc;
+            --radius: 16px;
+            --shadow: 0 4px 30px rgba(0,0,0,0.08);
         }
 
         body {
-            background: var(--bg-primary);
-            color: var(--text-primary);
+            background: var(--bg);
+            color: var(--text);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
             margin: 0;
             padding: 40px 20px;
             line-height: 1.5;
@@ -55,28 +49,28 @@
         .updated {
             color: var(--text-secondary);
             font-size: 15px;
-            margin: 8px 0 24px 0;
+            margin: 8px 0 28px 0;
         }
 
         .controls {
             display: flex;
             gap: 12px;
-            align-items: center;
         }
 
         .btn {
             font-size: 15px;
             font-weight: 500;
-            padding: 8px 18px;
-            border-radius: var(--radius-md);
+            padding: 10px 20px;
+            border-radius: var(--radius);
             transition: all 0.2s ease;
             cursor: pointer;
+            border: none;
         }
 
         .btn-reset {
             background: white;
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
+            border: 1px solid var(--border);
+            color: var(--text);
         }
 
         .btn-reset:hover {
@@ -84,65 +78,64 @@
         }
 
         .btn-export {
-            background: var(--accent-blue);
+            background: var(--accent);
             color: white;
-            border: none;
         }
 
         .btn-export:hover {
-            background: var(--accent-blue-hover);
+            background: var(--accent-hover);
         }
 
-        .form-select-wrapper {
+        .instructor-select {
             background: white;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             overflow: hidden;
             max-width: 360px;
-            margin-bottom: 24px;
+            margin-bottom: 32px;
         }
 
-        .form-select {
+        .instructor-select select {
             border: none;
             background: transparent;
             font-size: 15px;
-            padding: 12px 16px;
+            padding: 14px 18px;
             width: 100%;
-            color: var(--text-primary);
+            color: var(--text);
         }
 
-        .form-select:focus {
+        .instructor-select select:focus {
             outline: none;
-            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.2);
+            box-shadow: 0 0 0 3px rgba(0,122,255,0.2);
         }
 
         .search-box {
             max-width: 420px;
-            margin-bottom: 28px;
+            margin-bottom: 32px;
         }
 
         .search-input {
             width: 100%;
-            padding: 12px 16px;
+            padding: 14px 18px;
             font-size: 15px;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             background: white;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
         .search-input:focus {
             outline: none;
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0,122,255,0.15);
         }
 
         .table-card {
-            background: white;
-            border-radius: var(--radius-lg);
+            background: var(--card-bg);
+            border-radius: var(--radius);
             overflow: hidden;
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
         }
 
         .table {
@@ -153,16 +146,15 @@
 
         .table th,
         .table td {
-            padding: 14px 16px;
+            padding: 14px 18px;
             text-align: left;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border);
         }
 
         .table th {
-            background: #f8f8f8;
+            background: rgba(248,248,248,0.9);
             font-weight: 600;
-            color: var(--text-primary);
-            letter-spacing: -0.2px;
+            color: var(--text);
         }
 
         .table tbody tr:last-child td {
@@ -170,22 +162,45 @@
         }
 
         .table tbody tr:hover {
-            background: rgba(0, 113, 227, 0.05);
+            background: rgba(0,122,255,0.04);
         }
 
         .alert {
-            background: #fff5e6;
-            color: #664d03;
-            border: 1px solid #ffecb3;
-            border-radius: var(--radius-md);
-            padding: 16px;
-            margin-top: 24px;
+            background: #fff5f5;
+            color: #5c0f0f;
+            border: 1px solid #ffcccc;
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-top: 32px;
+            text-align: center;
+        }
+
+        .welcome {
+            text-align: center;
+            padding: 60px 24px;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin: 40px auto;
+            max-width: 760px;
+        }
+
+        .welcome h2 {
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .welcome p {
+            color: var(--text-secondary);
+            font-size: 17px;
+            max-width: 580px;
+            margin: 0 auto 24px;
         }
 
         @media (max-width: 768px) {
             body { padding: 24px 16px; }
-            header { flex-direction: column; align-items: flex-start; gap: 16px; }
-            .controls { width: 100%; justify-content: flex-start; }
+            header { flex-direction: column; align-items: flex-start; gap: 20px; }
+            .controls { width: 100%; flex-wrap: wrap; }
         }
     </style>
 </head>
@@ -194,7 +209,7 @@
 <div class="container">
 
     <header>
-        <h1>Danger Report – {{ instructor }}</h1>
+        <h1>Danger Report{% if instructor and instructor != "Select an Instructor" %} – {{ instructor }}{% endif %}</h1>
         <div class="controls">
             <button class="btn btn-reset" onclick="window.location.href='/'">
                 ← Back / Reset
@@ -207,9 +222,16 @@
 
     <div class="updated">Updated: {{ updated_at }}</div>
 
+    {% if message %}
+        {{ message | safe }}
+    {% endif %}
+
     <!-- Instructor selector -->
-    <div class="form-select-wrapper">
-        <select name="instructor" class="form-select" onchange="window.location.href='/?instructor=' + encodeURIComponent(this.value)">
+    <div class="instructor-select">
+        <select onchange="window.location.href='/?instructor=' + encodeURIComponent(this.value)">
+            <option value="" disabled {% if not instructor or instructor == "Select an Instructor" %}selected{% endif %}>
+                Select Instructor
+            </option>
             {% for inst in instructors %}
                 <option value="{{ inst }}" {% if inst == instructor %}selected{% endif %}>
                     {{ inst }}
@@ -223,47 +245,39 @@
         <input type="text" id="searchInput" class="search-input" placeholder="Search table…">
     </div>
 
-    <!-- Main table card -->
+    <!-- Table -->
+    {% if table_html %}
     <div class="table-card">
         {{ table_html | safe }}
-    </div>
-
-    {% if 'Error' in table_html or not table_html %}
-    <div class="alert">
-        <strong>No data available</strong> or an error occurred while loading the sheet.
     </div>
     {% endif %}
 
 </div>
 
 <script>
-// Search filter
+// Search
 document.getElementById('searchInput').addEventListener('keyup', function() {
     const filter = this.value.toLowerCase();
     const rows = document.querySelectorAll('.table tbody tr');
     rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(filter) ? '' : 'none';
+        row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
     });
 });
 
-// PNG export
+// Export
 document.getElementById('exportBtn').addEventListener('click', function() {
-    const element = document.querySelector('.table-card');
-    if (!element) {
-        alert('No table found');
-        return;
-    }
+    const el = document.querySelector('.table-card') || document.querySelector('.container');
+    if (!el) return alert('Nothing to export');
 
-    html2canvas(element, {
+    html2canvas(el, {
         scale: 2,
         backgroundColor: null,
         logging: false
     }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `Danger_Report_${'{{ instructor }}'.replace(/\s+/g, '_')}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
+        const a = document.createElement('a');
+        a.download = `Danger-Report_${'{{ instructor }}'.replace(/\s+/g, '_') || 'Overview'}.png`;
+        a.href = canvas.toDataURL('image/png');
+        a.click();
     }).catch(err => {
         console.error(err);
         alert('Export failed');
@@ -271,7 +285,6 @@ document.getElementById('exportBtn').addEventListener('click', function() {
 });
 </script>
 
-<!-- html2canvas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 </body>
