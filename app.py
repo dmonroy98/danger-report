@@ -136,7 +136,7 @@ def get_table_html(instructor: str) -> str:
 
         styled = df.style.apply(row_background, axis=1)
         styled = styled.set_properties(**{'text-align': 'left'})
-	styled = styled.hide(axis="index")
+        styled = styled.hide(axis="index")  # remove index column
 
         table_html = styled.to_html(
             escape=False,
