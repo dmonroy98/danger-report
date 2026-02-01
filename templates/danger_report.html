@@ -1,391 +1,385 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Heads Up Report{{ ' – ' + instructor if instructor and instructor != "Select an Instructor" else '' }}</title>
+<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Student Heads Up Report{{ ' – ' + instructor if instructor and instructor != "Select an Instructor" else '' }}</title>
 
-    <!-- html2canvas for PNG export -->
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<!-- html2canvas for PNG export --> <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
-    <style>
-        :root {
-            --bg:           #f5f5f7;
-            --card:         #ffffff;
-            --text:         #1d1d1f;
-            --text-light:   #6e6e73;
-            --border:       #d2d2d7;
-            --accent:       #007aff;
-            --accent-dark:  #0066cc;
-            --radius:       16px;
-            --shadow:       0 4px 30px rgba(0,0,0,0.08);
-        }
+<style> :root { --bg:           #f5f5f7; --card:         #ffffff; --text:         #1d1d1f; --text-light:   #6e6e73; --border:       #d2d2d7; --accent:       #007aff; --accent-dark:  #0066cc; --radius:       16px; --shadow:       0 4px 30px rgba(0,0,0,0.08); }
 
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 40px 20px;
-            line-height: 1.5;
-        }
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 40px 20px;
+    line-height: 1.5;
+}
 
-        .container {
-            max-width: 1280px;
-            margin: 0 auto;
-            opacity: 0;
-            transform: translateY(8px);
-            animation: fadeInUp 0.4s ease-out forwards;
-        }
+.container {
+    max-width: 1280px;
+    margin: 0 auto;
+    opacity: 0;
+    transform: translateY(8px);
+    animation: fadeInUp 0.4s ease-out forwards;
+}
 
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
 
-        h1 {
-            font-size: 32px;
-            font-weight: 600;
-            margin: 0;
-            letter-spacing: -0.5px;
-        }
+h1 {
+    font-size: 32px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
 
-        .updated {
-            color: var(--text-light);
-            font-size: 15px;
-            margin: 8px 0 20px 0;
-        }
+.updated {
+    color: var(--text-light);
+    font-size: 15px;
+    margin: 8px 0 20px 0;
+}
 
-        .controls {
-            display: flex;
-            gap: 12px;
-        }
+.controls {
+    display: flex;
+    gap: 12px;
+}
 
-        .btn {
-            font-size: 15px;
-            font-weight: 500;
-            padding: 10px 20px;
-            border-radius: var(--radius);
-            transition: all 0.2s ease;
-            cursor: pointer;
-            border: none;
-        }
+.btn {
+    font-size: 15px;
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+}
 
-        .btn-reset {
-            background: white;
-            border: 1px solid var(--border);
-            color: var(--text);
-        }
+.btn-reset {
+    background: white;
+    border: 1px solid var(--border);
+    color: var(--text);
+}
 
-        .btn-reset:hover {
-            background: #f0f0f0;
-        }
+.btn-reset:hover {
+    background: #f0f0f0;
+}
 
-        .btn-export {
-            background: var(--accent);
-            color: white;
-        }
+.btn-export {
+    background: var(--accent);
+    color: white;
+}
 
-        .btn-export:hover {
-            background: var(--accent-dark);
-        }
+.btn-export:hover {
+    background: var(--accent-dark);
+}
 
-        .instructor-select {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            overflow: hidden;
-            max-width: 360px;
-            margin-bottom: 20px;
-        }
+.instructor-select {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    max-width: 360px;
+    margin-bottom: 20px;
+}
 
-        .instructor-select select {
-            border: none;
-            background: transparent;
-            font-size: 15px;
-            padding: 14px 18px;
-            width: 100%;
-            color: var(--text);
-        }
+.instructor-select select {
+    border: none;
+    background: transparent;
+    font-size: 15px;
+    padding: 14px 18px;
+    width: 100%;
+    color: var(--text);
+}
 
-        .search-bar-wrapper {
-            position: relative;
-            z-index: 5;
-            margin-bottom: 24px;
-        }
+.search-bar-wrapper {
+    position: relative;
+    z-index: 5;
+    margin-bottom: 24px;
+}
 
-        .search-box {
-            max-width: 420px;
-        }
+.search-box {
+    max-width: 420px;
+}
 
-        .search-input {
-            width: 100%;
-            padding: 14px 18px;
-            font-size: 15px;
-            border: 1px solid var(--border);
-            border-radius: 999px;
-            background: white;
-            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-        }
+.search-input {
+    width: 100%;
+    padding: 14px 18px;
+    font-size: 15px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: white;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
 
-        .search-input:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(0,122,255,0.15);
-        }
+.search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,122,255,0.15);
+}
 
-        .table-card {
-            background: var(--card);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-            overflow: hidden;
-        }
+.table-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
 
-        .table-wrapper {
-            position: relative;
-            max-height: 70vh;
-            overflow-y: auto;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
+.table-wrapper {
+    position: relative;
+    max-height: 70vh;
+    overflow-y: auto;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
 
-        /* Scroll shadows */
-        .table-wrapper::before,
-        .table-wrapper::after {
-            content: "";
-            position: absolute;
-            left: 0;
-            right: 0;
-            height: 12px;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
+/* Scroll shadows */
+.table-wrapper::before,
+.table-wrapper::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 12px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
 
-        .table-wrapper::before {
-            top: 0;
-            box-shadow: 0 6px 10px rgba(0,0,0,0.12);
-        }
+.table-wrapper::before {
+    top: 0;
+    box-shadow: 0 6px 10px rgba(0,0,0,0.12);
+}
 
-        .table-wrapper::after {
-            bottom: 0;
-            box-shadow: 0 -6px 10px rgba(0,0,0,0.12);
-        }
+.table-wrapper::after {
+    bottom: 0;
+    box-shadow: 0 -6px 10px rgba(0,0,0,0.12);
+}
 
-        /* Base table */
-        .table {
-            width: 100%;
-            table-layout: auto;
-        }
+/* Base table */
+.table {
+    width: 100%;
+    table-layout: auto;
+}
 
-        .table th,
-        .table td {
-            padding: 14px 18px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-            background: var(--card);
-            white-space: normal;
-            word-break: break-word;
-        }
+.table th,
+.table td {
+    padding: 14px 18px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    background: var(--card);
+    white-space: normal;
+    word-break: break-word;
+    max-width: 300px;
+}
 
-        /* 🔥 FINAL DESKTOP WIDTH FIX — strongest override */
-        table.dataframe.table.table-striped.table-bordered.table-hover td,
-        table.dataframe.table.table-striped.table-bordered.table-hover th {
-            white-space: normal !important;
-            word-break: break-word !important;
-            max-width: 300px !important;
-        }
+/* 🔥 FINAL DESKTOP WIDTH FIX — strongest override */
+table.dataframe.table.table-striped.table-bordered.table-hover td,
+table.dataframe.table.table-striped.table-bordered.table-hover th {
+    white-space: normal !important;
+    word-break: break-word !important;
+    max-width: 300px !important;
+}
 
-        .table th {
-            background: rgba(248,248,248,0.95);
-            font-weight: 600;
-            color: var(--text);
-            position: sticky;
-            top: 0;
-            z-index: 2;
-            cursor: pointer;
-            user-select: none;
-        }
+ /* Remove pandas inline width that forces table to expand */
+table.dataframe.table.table-striped.table-bordered.table-hover th,
+table.dataframe.table.table-striped.table-bordered.table-hover td {
+width: auto !important;
+max-width: 300px !important;
 
-        .table th.sortable::after {
-            content: "⇅";
-            font-size: 11px;
-            margin-left: 6px;
-            color: var(--text-light);
-        }
+}
 
-        .table th.sorted-asc::after {
-            content: "↑";
-        }
+.table th {
+    background: rgba(248,248,248,0.95);
+    font-weight: 600;
+    color: var(--text);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    cursor: pointer;
+    user-select: none;
+}
 
-        .table th.sorted-desc::after {
-            content: "↓";
-        }
+.table th.sortable::after {
+    content: "⇅";
+    font-size: 11px;
+    margin-left: 6px;
+    color: var(--text-light);
+}
 
-        .table tbody tr:hover {
-            background: rgba(0,122,255,0.04);
-        }
+.table th.sorted-asc::after {
+    content: "↑";
+}
 
-        .row-fade-in {
-            animation: rowFadeIn 0.25s ease-out;
-        }
+.table th.sorted-desc::after {
+    content: "↓";
+}
 
-        .table-footer {
-            margin-top: 12px;
-            font-size: 13px;
-            color: var(--text-light);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+.table tbody tr:hover {
+    background: rgba(0,122,255,0.04);
+}
 
-        .no-results {
-            margin-top: 16px;
-            padding: 16px 18px;
-            border-radius: 12px;
-            background: #fff5f5;
-            color: #c41e3a;
-            font-size: 14px;
-        }
+.row-fade-in {
+    animation: rowFadeIn 0.25s ease-out;
+}
 
-        /* Loading shimmer */
-        .shimmer-overlay {
-            position: fixed;
-            inset: 0;
-            background: linear-gradient(120deg, #f5f5f7 0%, #e6e6ea 20%, #f5f5f7 40%, #f5f5f7 100%);
-            background-size: 200% 100%;
-            animation: shimmerMove 0.9s linear infinite, shimmerFade 0.5s ease-out 0.4s forwards;
-            z-index: 999;
-            pointer-events: none;
-        }
+.table-footer {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
-        @keyframes shimmerMove {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
+.no-results {
+    margin-top: 16px;
+    padding: 16px 18px;
+    border-radius: 12px;
+    background: #fff5f5;
+    color: #c41e3a;
+    font-size: 14px;
+}
 
-        @keyframes shimmerFade {
-            to { opacity: 0; visibility: hidden; }
-        }
+/* Loading shimmer */
+.shimmer-overlay {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(120deg, #f5f5f7 0%, #e6e6ea 20%, #f5f5f7 40%, #f5f5f7 100%);
+    background-size: 200% 100%;
+    animation: shimmerMove 0.9s linear infinite, shimmerFade 0.5s ease-out 0.4s forwards;
+    z-index: 999;
+    pointer-events: none;
+}
 
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+@keyframes shimmerMove {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
 
-        @keyframes rowFadeIn {
-            from { opacity: 0; transform: translateY(4px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+@keyframes shimmerFade {
+    to { opacity: 0; visibility: hidden; }
+}
 
-        /* Export area styling */
-        #exportArea {
-            padding: 32px;
-            background: #ffffff;
-        }
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
-        .export-header {
-            text-align: center;
-            margin-bottom: 24px;
-        }
+@keyframes rowFadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
-        .export-title {
-            font-size: 22px;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
+/* Export area styling */
+#exportArea {
+    padding: 32px;
+    background: #ffffff;
+}
 
-        .export-sub {
-            font-size: 15px;
-            color: #555;
-        }
+.export-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
 
-        /* Mobile */
-        @media (max-width: 768px) {
-            body { padding: 20px 12px; }
-            .container { max-width: 100%; }
+.export-title {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
 
-            header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 16px;
-                margin-bottom: 16px;
-            }
+.export-sub {
+    font-size: 15px;
+    color: #555;
+}
 
-            h1 { font-size: 22px; }
+/* Mobile */
+@media (max-width: 768px) {
+    body { padding: 20px 12px; }
+    .container { max-width: 100%; }
 
-            .controls {
-                width: 100%;
-                flex-direction: column;
-                gap: 10px;
-            }
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
 
-            .btn { width: 100%; padding: 12px; font-size: 16px; }
+    h1 { font-size: 22px; }
 
-            .search-bar-wrapper {
-                position: sticky;
-                top: 0;
-                padding: 8px 0 10px;
-                margin-bottom: 12px;
-                backdrop-filter: blur(18px);
-            }
+    .controls {
+        width: 100%;
+        flex-direction: column;
+        gap: 10px;
+    }
 
-            .table-wrapper {
-                max-height: calc(100vh - 220px);
-            }
+    .btn { width: 100%; padding: 12px; font-size: 16px; }
 
-            .table th,
-            .table td {
-                padding: 10px 12px;
-                font-size: 13px;
-            }
-        }
+    .search-bar-wrapper {
+        position: sticky;
+        top: 0;
+        padding: 8px 0 10px;
+        margin-bottom: 12px;
+        backdrop-filter: blur(18px);
+    }
 
-        /* Dark mode */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg: #000;
-                --card: #1c1c1e;
-                --text: #f5f5f7;
-                --text-light: #a1a1a6;
-                --border: #3a3a3c;
-                --accent: #0a84ff;
-                --accent-dark: #0060df;
-            }
+    .table-wrapper {
+        max-height: calc(100vh - 220px);
+    }
 
-            body {
-                background: radial-gradient(circle at top, #1c1c1e 0, #000 55%);
-            }
+    .table th,
+    .table td {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+}
 
-            .table th,
-            .table td {
-                background: #1c1c1e;
-                border-bottom-color: #3a3a3c;
-            }
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #000;
+        --card: #1c1c1e;
+        --text: #f5f5f7;
+        --text-light: #a1a1a6;
+        --border: #3a3a3c;
+        --accent: #0a84ff;
+        --accent-dark: #0060df;
+    }
 
-            .table th {
-                background: rgba(44,44,46,0.98);
-            }
+    body {
+        background: radial-gradient(circle at top, #1c1c1e 0, #000 55%);
+    }
 
-            .table tbody tr:hover {
-                background: rgba(10,132,255,0.18);
-            }
+    .table th,
+    .table td {
+        background: #1c1c1e;
+        border-bottom-color: #3a3a3c;
+    }
 
-            .search-input {
-                background: rgba(44,44,46,0.9);
-                color: var(--text);
-                border-color: #3a3a3c;
-            }
+    .table th {
+        background: rgba(44,44,46,0.98);
+    }
 
-            #exportArea {
-                background: #ffffff;
-                color: #000000;
-            }
-        }
-    </style>
+    .table tbody tr:hover {
+        background: rgba(10,132,255,0.18);
+    }
+
+    .search-input {
+        background: rgba(44,44,46,0.9);
+        color: var(--text);
+        border-color: #3a3a3c;
+    }
+
+    #exportArea {
+        background: #ffffff;
+        color: #000000;
+    }
+}
+
+</style>
+
 </head>
 
 <body>
@@ -394,255 +388,1996 @@
 
 <div class="container">
 
-    <header>
-        <h1>Student Heads Up Report{{ ' – ' + instructor if instructor and instructor != "Select an Instructor" else '' }}</h1>
-        <div class="controls">
-            <button class="btn btn-reset" onclick="window.location.href='/'">← Back</button>
-            <button id="exportBtn" class="btn btn-export">Export as PNG</button>
-        </div>
-    </header>
+<header> <h1>Student Heads Up Report{{ ' – ' + instructor if instructor and instructor != "Select an Instructor" else '' }}</h1> <div class="controls"> <button class="btn btn-reset" onclick="window.location.href='/'">← Back</button> <button id="exportBtn" class="btn btn-export">Export as PNG</button> </div> </header>
 
-    <div class="updated">Updated: {{ updated_at }}</div>
+<div class="updated">Updated: {{ updated_at }}</div>
 
-    {% if message %}
-        {{ message | safe }}
-    {% endif %}
+{% if message %} {{ message | safe }} {% endif %}
 
-    <div class="instructor-select">
-        <select onchange="window.location.href='/?instructor=' + encodeURIComponent(this.value)">
-            <option value="" disabled {% if not instructor or instructor == "Select an Instructor" %}selected{% endif %}>
-                Select Instructor
-            </option>
-            {% for inst in instructors %}
-                <option value="{{ inst }}" {% if inst == instructor %}selected{% endif %}>{{ inst }}</option>
-            {% endfor %}
-        </select>
+<div class="instructor-select"> <select onchange="window.location.href='/?instructor=' + encodeURIComponent(this.value)"> <option value="" disabled {% if not instructor or instructor == "Select an Instructor" %}selected{% endif %}> Select Instructor </option> {% for inst in instructors %} <option value="{{ inst }}" {% if inst == instructor %}selected{% endif %}>{{ inst }}</option> {% endfor %} </select> </div>
+
+<div class="search-bar-wrapper"> <div class="search-box"> <input type="text" id="searchInput" class="search-input" placeholder="Search table…"> </div> </div>
+
+{% if table_html %} <!-- EXPORT AREA (ONLY THIS IS CAPTURED IN PNG) --> <div id="exportArea" data-instructor="{{ instructor }}">
+
+<div class="export-header">
+    <div class="export-title">Student Heads Up Report</div>
+    <div class="export-sub" id="exportInstructorLine">
+        Instructor: {{ instructor if instructor and instructor != "Select an Instructor" else "N/A" }}
     </div>
-
-    <div class="search-bar-wrapper">
-        <div class="search-box">
-            <input type="text" id="searchInput" class="search-input" placeholder="Search table…">
-        </div>
+    <div class="export-sub" id="exportTimestampLine">
+        Exported:
     </div>
+</div>
 
-    {% if table_html %}
-    <!-- EXPORT AREA (ONLY THIS IS CAPTURED IN PNG) -->
-    <div id="exportArea" data-instructor="{{ instructor }}">
-        
-        <div class="export-header">
-            <div class="export-title">Student Heads Up Report</div>
-            <div class="export-sub" id="exportInstructorLine">
-                Instructor: {{ instructor if instructor and instructor != "Select an Instructor" else "N/A" }}
-            </div>
-            <div class="export-sub" id="exportTimestampLine">
-                Exported:
-            </div>
-        </div>
-
-        <div class="table-card">
-            <div class="table-wrapper">
-                {{ table_html | safe }}
-            </div>
-        </div>
-
-        <div id="tableFooter" class="table-footer"></div>
-        <div id="noResults" class="no-results" style="display:none;">No matches found.</div>
-
+<div class="table-card">
+    <div class="table-wrapper">
+        {{ table_html | safe }}
     </div>
-    {% endif %}
+</div>
+
+<div id="tableFooter" class="table-footer"></div>
+<div id="noResults" class="no-results" style="display:none;">No matches found.</div>
+
+</div> {% endif %}
 
 </div>
 
-<script>
-    /* -------------------------------
-       TABLE FEATURES (search, sort)
-    --------------------------------*/
-    function initTableFeatures() {
-        const table = document.querySelector('.table');
-        const wrapper = document.querySelector('.table-wrapper');
-        const footer = document.getElementById('tableFooter');
-        const noResults = document.getElementById('noResults');
+<script> /* ------------------------------- TABLE FEATURES (search, sort) --------------------------------*/ function initTableFeatures() { const table = document.querySelector('.table'); const wrapper = document.querySelector('.table-wrapper'); const footer = document.getElementById('tableFooter'); const noResults = document.getElementById('noResults');
 
-        if (!table || !wrapper || !footer) return;
+if (!table || !wrapper || !footer) return;
 
-        const tbody = table.tBodies[0];
+const tbody = table.tBodies[0];
 
-        /* Scroll shadows */
-        function updateShadows() {
-            const top = wrapper.scrollTop;
-            const max = wrapper.scrollHeight - wrapper.clientHeight;
-            wrapper.classList.toggle('shadow-top', top > 0);
-            wrapper.classList.toggle('shadow-bottom', top < max - 1);
-        }
-        wrapper.addEventListener('scroll', updateShadows);
-        updateShadows();
+/* Scroll shadows */
+function updateShadows() {
+    const top = wrapper.scrollTop;
+    const max = wrapper.scrollHeight - wrapper.clientHeight;
+    wrapper.classList.toggle('shadow-top', top > 0);
+    wrapper.classList.toggle('shadow-bottom', top < max - 1);
+}
+wrapper.addEventListener('scroll', updateShadows);
+updateShadows();
 
-        /* Footer count */
-        function updateFooter() {
-            const rows = Array.from(tbody.rows);
-            const visible = rows.filter(r => r.style.display !== 'none').length;
-            footer.textContent = `Showing ${visible} of ${rows.length} entries`;
-        }
+/* Footer count */
+function updateFooter() {
+    const rows = Array.from(tbody.rows);
+    const visible = rows.filter(r => r.style.display !== 'none').length;
+    footer.textContent = `Showing ${visible} of ${rows.length} entries`;
+}
 
-        /* Sorting */
-        const sortState = {};
+/* Sorting */
+const sortState = {};
 
-        function getCellValue(row, index) {
-            const val = row.children[index].textContent.trim();
-            const num = Number(val);
-            return isNaN(num) ? val.toLowerCase() : num;
-        }
+function getCellValue(row, index) {
+    const val = row.children[index].textContent.trim();
+    const num = Number(val);
+    return isNaN(num) ? val.toLowerCase() : num;
+}
 
-        function sortTableByColumn(index) {
-            const rows = Array.from(tbody.rows);
-            const current = sortState[index] || 'asc';
-            const multiplier = current === 'asc' ? 1 : -1;
+function sortTableByColumn(index) {
+    const rows = Array.from(tbody.rows);
+    const current = sortState[index] || 'asc';
+    const multiplier = current === 'asc' ? 1 : -1;
 
-            rows.sort((a, b) => {
-                const A = getCellValue(a, index);
-                const B = getCellValue(b, index);
-                if (A < B) return -1 * multiplier;
-                if (A > B) return 1 * multiplier;
-                return 0;
-            });
-
-            sortState[index] = current === 'asc' ? 'desc' : 'asc';
-
-            document.querySelectorAll('th').forEach((th, i) => {
-                th.classList.remove('sorted-asc', 'sorted-desc');
-                if (i === index) {
-                    th.classList.add(sortState[index] === 'asc' ? 'sorted-asc' : 'sorted-desc');
-                }
-            });
-
-            rows.forEach(r => tbody.appendChild(r));
-            updateFooter();
-        }
-
-        document.querySelectorAll('th').forEach((th, i) => {
-            th.classList.add('sortable');
-            th.addEventListener('click', () => sortTableByColumn(i));
-        });
-
-        /* Search */
-        const searchInput = document.getElementById('searchInput');
-        if (searchInput) {
-            searchInput.addEventListener('keyup', function () {
-                const filter = this.value.toLowerCase();
-                let visible = 0;
-
-                Array.from(tbody.rows).forEach(row => {
-                    const match = row.textContent.toLowerCase().includes(filter);
-                    row.style.display = match ? '' : 'none';
-                    if (match) visible++;
-                });
-
-                noResults.style.display = visible === 0 ? 'block' : 'none';
-                updateFooter();
-            });
-        }
-
-        updateFooter();
-    }
-
-    /* -------------------------------
-       CENTRAL TIME EXPORT TIMESTAMP
-    --------------------------------*/
-    function getCentralTimeString() {
-        const now = new Date();
-        return now.toLocaleString("en-US", {
-            timeZone: "America/Chicago",
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-            hour: "numeric",
-            minute: "2-digit"
-        });
-    }
-
-    /* -------------------------------
-       FILENAME SANITIZER (Option B)
-       Keep capitalization, replace spaces with underscores
-    --------------------------------*/
-    function sanitizeInstructorName(name) {
-        if (!name) return "report";
-        return name.replace(/[^a-zA-Z0-9]+/g, "_");
-    }
-
-    /* -------------------------------
-       PNG EXPORT (mobile-safe)
-    --------------------------------*/
-    function initExport() {
-        const exportBtn = document.getElementById('exportBtn');
-        const exportArea = document.getElementById('exportArea');
-        if (!exportBtn || !exportArea) return;
-
-        exportBtn.addEventListener('click', function () {
-
-            /* Update timestamp */
-            const exportTimestampLine = document.getElementById('exportTimestampLine');
-            if (exportTimestampLine) {
-                exportTimestampLine.textContent = "Exported: " + getCentralTimeString();
-            }
-
-            /* Hide UI elements */
-            const header = document.querySelector('header');
-            const controls = document.querySelector('.controls');
-            const searchBar = document.querySelector('.search-bar-wrapper');
-            const instructorSelect = document.querySelector('.instructor-select');
-            const shimmer = document.getElementById('shimmerOverlay');
-
-            const toHide = [header, controls, searchBar, instructorSelect, shimmer].filter(Boolean);
-            toHide.forEach(el => el.style.visibility = 'hidden');
-
-            /* Force white background */
-            const originalBackground = document.body.style.background;
-            document.body.style.background = '#ffffff';
-
-            /* Capture */
-            html2canvas(exportArea, {
-                scale: 2,
-                useCORS: true,
-                scrollX: 0,
-                scrollY: -window.scrollY,
-                windowWidth: document.documentElement.offsetWidth,
-                backgroundColor: '#ffffff'
-            }).then(canvas => {
-
-                canvas.toBlob(function (blob) {
-                    const link = document.createElement("a");
-
-                    const instructor = exportArea.getAttribute('data-instructor') || '';
-                    const safeInstructor = sanitizeInstructorName(instructor);
-
-                    const filename = `${safeInstructor}_heads_up_report.png`;
-
-                    link.download = filename;
-                    link.href = URL.createObjectURL(blob);
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                });
-
-            }).finally(() => {
-                /* Restore UI */
-                toHide.forEach(el => el.style.visibility = '');
-                document.body.style.background = originalBackground;
-            });
-        });
-    }
-
-    /* -------------------------------
-       INIT ON LOAD
-    --------------------------------*/
-    window.addEventListener('load', () => {
-        const shimmer = document.getElementById('shimmerOverlay');
-        if (shimmer) shimmer.style.display = 'none';
-
-        initTableFeatures();
-        initExport();
+    rows.sort((a, b) => {
+        const A = getCellValue(a, index);
+        const B = getCellValue(b, index);
+        if (A < B) return -1 * multiplier;
+        if (A > B) return 1 * multiplier;
+        return 0;
     });
-</script>
 
-</body>
-</html>
+    sortState[index] = current === 'asc' ? 'desc' : 'asc';
+
+    document.querySelectorAll('th').forEach((th, i) => {
+        th.classList.remove('sorted-asc', 'sorted-desc');
+        if (i === index) {
+            th.classList.add(sortState[index] === 'asc' ? 'sorted-asc' : 'sorted-desc');
+        }
+    });
+
+    rows.forEach(r => tbody.appendChild(r));
+    updateFooter();
+}
+
+document.querySelectorAll('th').forEach((th, i) => {
+    th.classList.add('sortable');
+    th.addEventListener('click', () => sortTableByColumn(i));
+});
+
+/* Search */
+const searchInput = document.getElementById('searchInput');
+if (searchInput) {
+    searchInput.addEventListener('keyup', function () {
+        const filter = this.value.toLowerCase();
+        let visible = 0;
+
+        Array.from(tbody.rows).forEach(row => {
+            const match = row.textContent.toLowerCase().includes(filter);
+            row.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+
+        noResults.style.display = visible === 0 ? 'block' : 'none';
+        updateFooter();
+    });
+}
+
+updateFooter();
+
+}
+
+/* ------------------------------- CENTRAL TIME EXPORT TIMESTAMP --------------------------------*/ function getCentralTimeString() { const now = new Date(); return now.toLocaleString("en-US", { timeZone: "America/Chicago", year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }); }
+
+/* ------------------------------- FILENAME SANITIZER (Option B) Keep capitalization, replace spaces with underscores --------------------------------*/ function sanitizeInstructorName(name) { if (!name) return "report"; return name.replace(/+/g, "_"); }
+
+/* ------------------------------- PNG EXPORT (mobile-safe) --------------------------------*/ function initExport() { const exportBtn = document.getElementById('exportBtn'); const exportArea = document.getElementById('exportArea'); if (!exportBtn || !exportArea) return;
+
+exportBtn.addEventListener('click', function () {
+
+    /* Update timestamp */
+    const exportTimestampLine = document.getElementById('exportTimestampLine');
+    if (exportTimestampLine) {
+        exportTimestampLine.textContent = "Exported: " + getCentralTimeString();
+    }
+
+    /* Hide UI elements */
+    const header = document.querySelector('header');
+    const controls = document.querySelector('.controls');
+    const searchBar = document.querySelector('.search-bar-wrapper');
+    const instructorSelect = document.querySelector('.instructor-select');
+    const shimmer = document.getElementById('shimmerOverlay');
+
+    const toHide = [header, controls, searchBar, instructorSelect, shimmer].filter(Boolean);
+    toHide.forEach(el => el.style.visibility = 'hidden');
+
+    /* Force white background */
+    const originalBackground = document.body.style.background;
+    document.body.style.background = '#ffffff';
+
+    /* Capture */
+    html2canvas(exportArea, {
+        scale: 2,
+        useCORS: true,
+        scrollX: 0,
+        scrollY: -window.scrollY,
+        windowWidth: document.documentElement.offsetWidth,
+        backgroundColor: '#ffffff'
+    }).then(canvas => {
+
+        canvas.toBlob(function (blob) {
+            const link = document.createElement("a");
+
+            const instructor = exportArea.getAttribute('data-instructor') || '';
+            const safeInstructor = sanitizeInstructorName(instructor);
+
+            const filename = `${safeInstructor}_heads_up_report.png`;
+
+            link.download = filename;
+            link.href = URL.createObjectURL(blob);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+    }).finally(() => {
+        /* Restore UI */
+        toHide.forEach(el => el.style.visibility = '');
+        document.body.style.background = originalBackground;
+    });
+});
+
+}
+
+/* ------------------------------- INIT ON LOAD --------------------------------*/ window.addEventListener('load', () => { const shimmer = document.getElementById('shimmerOverlay'); if (shimmer) shimmer.style.display = 'none';
+
+initTableFeatures();
+initExport();
+
+}); </script>
+
+</body> </html><!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Student Heads Up Report{{ ' – ' + instructor if instructor and instructor != "Select an Instructor" else '' }}</title>
+
+<!-- html2canvas for PNG export --> <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<style> :root { --bg:           #f5f5f7; --card:         #ffffff; --text:         #1d1d1f; --text-light:   #6e6e73; --border:       #d2d2d7; --accent:       #007aff; --accent-dark:  #0066cc; --radius:       16px; --shadow:       0 4px 30px rgba(0,0,0,0.08); }
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 40px 20px;
+    line-height: 1.5;
+}
+
+.container {
+    max-width: 1280px;
+    margin: 0 auto;
+    opacity: 0;
+    transform: translateY(8px);
+    animation: fadeInUp 0.4s ease-out forwards;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+h1 {
+    font-size: 32px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+.updated {
+    color: var(--text-light);
+    font-size: 15px;
+    margin: 8px 0 20px 0;
+}
+
+.controls {
+    display: flex;
+    gap: 12px;
+}
+
+.btn {
+    font-size: 15px;
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+}
+
+.btn-reset {
+    background: white;
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+
+.btn-reset:hover {
+    background: #f0f0f0;
+}
+
+.btn-export {
+    background: var(--accent);
+    color: white;
+}
+
+.btn-export:hover {
+    background: var(--accent-dark);
+}
+
+.instructor-select {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    max-width: 360px;
+    margin-bottom: 20px;
+}
+
+.instructor-select select {
+    border: none;
+    background: transparent;
+    font-size: 15px;
+    padding: 14px 18px;
+    width: 100%;
+    color: var(--text);
+}
+
+.search-bar-wrapper {
+    position: relative;
+    z-index: 5;
+    margin-bottom: 24px;
+}
+
+.search-box {
+    max-width: 420px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 14px 18px;
+    font-size: 15px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: white;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,122,255,0.15);
+}
+
+.table-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.table-wrapper {
+    position: relative;
+    max-height: 70vh;
+    overflow-y: auto;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Scroll shadows */
+.table-wrapper::before,
+.table-wrapper::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 12px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.table-wrapper::before {
+    top: 0;
+    box-shadow: 0 6px 10px rgba(0,0,0,0.12);
+}
+
+.table-wrapper::after {
+    bottom: 0;
+    box-shadow: 0 -6px 10px rgba(0,0,0,0.12);
+}
+
+/* Base table */
+.table {
+    width: 100%;
+    table-layout: auto;
+}
+
+.table th,
+.table td {
+    padding: 14px 18px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    background: var(--card);
+    white-space: normal;
+    word-break: break-word;
+    max-width: 300px;
+}
+
+/* 🔥 FINAL DESKTOP WIDTH FIX — strongest override */
+table.dataframe.table.table-striped.table-bordered.table-hover td,
+table.dataframe.table.table-striped.table-bordered.table-hover th {
+    white-space: normal !important;
+    word-break: break-word !important;
+    max-width: 300px !important;
+}
+
+ /* Remove pandas inline width that forces table to expand */
+table.dataframe.table.table-striped.table-bordered.table-hover th,
+table.dataframe.table.table-striped.table-bordered.table-hover td {
+width: auto !important;
+max-width: 300px !important;
+
+}
+
+.table th {
+    background: rgba(248,248,248,0.95);
+    font-weight: 600;
+    color: var(--text);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    cursor: pointer;
+    user-select: none;
+}
+
+.table th.sortable::after {
+    content: "⇅";
+    font-size: 11px;
+    margin-left: 6px;
+    color: var(--text-light);
+}
+
+.table th.sorted-asc::after {
+    content: "↑";
+}
+
+.table th.sorted-desc::after {
+    content: "↓";
+}
+
+.table tbody tr:hover {
+    background: rgba(0,122,255,0.04);
+}
+
+.row-fade-in {
+    animation: rowFadeIn 0.25s ease-out;
+}
+
+.table-footer {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.no-results {
+    margin-top: 16px;
+    padding: 16px 18px;
+    border-radius: 12px;
+    background: #fff5f5;
+    color: #c41e3a;
+    font-size: 14px;
+}
+
+/* Loading shimmer */
+.shimmer-overlay {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(120deg, #f5f5f7 0%, #e6e6ea 20%, #f5f5f7 40%, #f5f5f7 100%);
+    background-size: 200% 100%;
+    animation: shimmerMove 0.9s linear infinite, shimmerFade 0.5s ease-out 0.4s forwards;
+    z-index: 999;
+    pointer-events: none;
+}
+
+@keyframes shimmerMove {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+@keyframes shimmerFade {
+    to { opacity: 0; visibility: hidden; }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rowFadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Export area styling */
+#exportArea {
+    padding: 32px;
+    background: #ffffff;
+}
+
+.export-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.export-title {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.export-sub {
+    font-size: 15px;
+    color: #555;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    body { padding: 20px 12px; }
+    .container { max-width: 100%; }
+
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    h1 { font-size: 22px; }
+
+    .controls {
+        width: 100%;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .btn { width: 100%; padding: 12px; font-size: 16px; }
+
+    .search-bar-wrapper {
+        position: sticky;
+        top: 0;
+        padding: 8px 0 10px;
+        margin-bottom: 12px;
+        backdrop-filter: blur(18px);
+    }
+
+    .table-wrapper {
+        max-height: calc(100vh - 220px);
+    }
+
+    .table th,
+    .table td {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #000;
+        --card: #1c1c1e;
+        --text: #f5f5f7;
+        --text-light: #a1a1a6;
+        --border: #3a3a3c;
+        --accent: #0a84ff;
+        --accent-dark: #0060df;
+    }
+
+    body {
+        background: radial-gradient(circle at top, #1c1c1e 0, #000 55%);
+    }
+
+    .table th,
+    .table td {
+        background: #1c1c1e;
+        border-bottom-color: #3a3a3c;
+    }
+
+    .table th {
+        background: rgba(44,44,46,0.98);
+    }
+
+    .table tbody tr:hover {
+        background: rgba(10,132,255,0.18);
+    }
+
+    .search-input {
+        background: rgba(44,44,46,0.9);
+        color: var(--text);
+        border-color: #3a3a3c;
+    }
+
+    #exportArea {
+        background: #ffffff;
+        color: #000000;
+    }
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div id="shimmerOverlay" class="shimmer-overlay"></div>
+
+<div class="container">
+
+<header> <h1>Student Heads Up Report{{ ' – ' + instructor if instructor and instructor != "Select an Instructor" else '' }}</h1> <div class="controls"> <button class="btn btn-reset" onclick="window.location.href='/'">← Back</button> <button id="exportBtn" class="btn btn-export">Export as PNG</button> </div> </header>
+
+<div class="updated">Updated: {{ updated_at }}</div>
+
+{% if message %} {{ message | safe }} {% endif %}
+
+<div class="instructor-select"> <select onchange="window.location.href='/?instructor=' + encodeURIComponent(this.value)"> <option value="" disabled {% if not instructor or instructor == "Select an Instructor" %}selected{% endif %}> Select Instructor </option> {% for inst in instructors %} <option value="{{ inst }}" {% if inst == instructor %}selected{% endif %}>{{ inst }}</option> {% endfor %} </select> </div>
+
+<div class="search-bar-wrapper"> <div class="search-box"> <input type="text" id="searchInput" class="search-input" placeholder="Search table…"> </div> </div>
+
+{% if table_html %} <!-- EXPORT AREA (ONLY THIS IS CAPTURED IN PNG) --> <div id="exportArea" data-instructor="{{ instructor }}">
+
+<div class="export-header">
+    <div class="export-title">Student Heads Up Report</div>
+    <div class="export-sub" id="exportInstructorLine">
+        Instructor: {{ instructor if instructor and instructor != "Select an Instructor" else "N/A" }}
+    </div>
+    <div class="export-sub" id="exportTimestampLine">
+        Exported:
+    </div>
+</div>
+
+<div class="table-card">
+    <div class="table-wrapper">
+        {{ table_html | safe }}
+    </div>
+</div>
+
+<div id="tableFooter" class="table-footer"></div>
+<div id="noResults" class="no-results" style="display:none;">No matches found.</div>
+
+</div> {% endif %}
+
+</div>
+
+<script> /* ------------------------------- TABLE FEATURES (search, sort) --------------------------------*/ function initTableFeatures() { const table = document.querySelector('.table'); const wrapper = document.querySelector('.table-wrapper'); const footer = document.getElementById('tableFooter'); const noResults = document.getElementById('noResults');
+
+if (!table || !wrapper || !footer) return;
+
+const tbody = table.tBodies[0];
+
+/* Scroll shadows */
+function updateShadows() {
+    const top = wrapper.scrollTop;
+    const max = wrapper.scrollHeight - wrapper.clientHeight;
+    wrapper.classList.toggle('shadow-top', top > 0);
+    wrapper.classList.toggle('shadow-bottom', top < max - 1);
+}
+wrapper.addEventListener('scroll', updateShadows);
+updateShadows();
+
+/* Footer count */
+function updateFooter() {
+    const rows = Array.from(tbody.rows);
+    const visible = rows.filter(r => r.style.display !== 'none').length;
+    footer.textContent = `Showing ${visible} of ${rows.length} entries`;
+}
+
+/* Sorting */
+const sortState = {};
+
+function getCellValue(row, index) {
+    const val = row.children[index].textContent.trim();
+    const num = Number(val);
+    return isNaN(num) ? val.toLowerCase() : num;
+}
+
+function sortTableByColumn(index) {
+    const rows = Array.from(tbody.rows);
+    const current = sortState[index] || 'asc';
+    const multiplier = current === 'asc' ? 1 : -1;
+
+    rows.sort((a, b) => {
+        const A = getCellValue(a, index);
+        const B = getCellValue(b, index);
+        if (A < B) return -1 * multiplier;
+        if (A > B) return 1 * multiplier;
+        return 0;
+    });
+
+    sortState[index] = current === 'asc' ? 'desc' : 'asc';
+
+    document.querySelectorAll('th').forEach((th, i) => {
+        th.classList.remove('sorted-asc', 'sorted-desc');
+        if (i === index) {
+            th.classList.add(sortState[index] === 'asc' ? 'sorted-asc' : 'sorted-desc');
+        }
+    });
+
+    rows.forEach(r => tbody.appendChild(r));
+    updateFooter();
+}
+
+document.querySelectorAll('th').forEach((th, i) => {
+    th.classList.add('sortable');
+    th.addEventListener('click', () => sortTableByColumn(i));
+});
+
+/* Search */
+const searchInput = document.getElementById('searchInput');
+if (searchInput) {
+    searchInput.addEventListener('keyup', function () {
+        const filter = this.value.toLowerCase();
+        let visible = 0;
+
+        Array.from(tbody.rows).forEach(row => {
+            const match = row.textContent.toLowerCase().includes(filter);
+            row.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+
+        noResults.style.display = visible === 0 ? 'block' : 'none';
+        updateFooter();
+    });
+}
+
+updateFooter();
+
+}
+
+/* ------------------------------- CENTRAL TIME EXPORT TIMESTAMP --------------------------------*/ function getCentralTimeString() { const now = new Date(); return now.toLocaleString("en-US", { timeZone: "America/Chicago", year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }); }
+
+/* ------------------------------- FILENAME SANITIZER (Option B) Keep capitalization, replace spaces with underscores --------------------------------*/ function sanitizeInstructorName(name) { if (!name) return "report"; return name.replace(/+/g, "_"); }
+
+/* ------------------------------- PNG EXPORT (mobile-safe) --------------------------------*/ function initExport() { const exportBtn = document.getElementById('exportBtn'); const exportArea = document.getElementById('exportArea'); if (!exportBtn || !exportArea) return;
+
+exportBtn.addEventListener('click', function () {
+
+    /* Update timestamp */
+    const exportTimestampLine = document.getElementById('exportTimestampLine');
+    if (exportTimestampLine) {
+        exportTimestampLine.textContent = "Exported: " + getCentralTimeString();
+    }
+
+    /* Hide UI elements */
+    const header = document.querySelector('header');
+    const controls = document.querySelector('.controls');
+    const searchBar = document.querySelector('.search-bar-wrapper');
+    const instructorSelect = document.querySelector('.instructor-select');
+    const shimmer = document.getElementById('shimmerOverlay');
+
+    const toHide = [header, controls, searchBar, instructorSelect, shimmer].filter(Boolean);
+    toHide.forEach(el => el.style.visibility = 'hidden');
+
+    /* Force white background */
+    const originalBackground = document.body.style.background;
+    document.body.style.background = '#ffffff';
+
+    /* Capture */
+    html2canvas(exportArea, {
+        scale: 2,
+        useCORS: true,
+        scrollX: 0,
+        scrollY: -window.scrollY,
+        windowWidth: document.documentElement.offsetWidth,
+        backgroundColor: '#ffffff'
+    }).then(canvas => {
+
+        canvas.toBlob(function (blob) {
+            const link = document.createElement("a");
+
+            const instructor = exportArea.getAttribute('data-instructor') || '';
+            const safeInstructor = sanitizeInstructorName(instructor);
+
+            const filename = `${safeInstructor}_heads_up_report.png`;
+
+            link.download = filename;
+            link.href = URL.createObjectURL(blob);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+    }).finally(() => {
+        /* Restore UI */
+        toHide.forEach(el => el.style.visibility = '');
+        document.body.style.background = originalBackground;
+    });
+});
+
+}
+
+/* ------------------------------- INIT ON LOAD --------------------------------*/ window.addEventListener('load', () => { const shimmer = document.getElementById('shimmerOverlay'); if (shimmer) shimmer.style.display = 'none';
+
+initTableFeatures();
+initExport();
+
+}); </script>
+
+</body> </html><!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Student Heads Up Report{{ ' – ' + instructor if instructor and instructor != "Select an Instructor" else '' }}</title>
+
+<!-- html2canvas for PNG export --> <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<style> :root { --bg:           #f5f5f7; --card:         #ffffff; --text:         #1d1d1f; --text-light:   #6e6e73; --border:       #d2d2d7; --accent:       #007aff; --accent-dark:  #0066cc; --radius:       16px; --shadow:       0 4px 30px rgba(0,0,0,0.08); }
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 40px 20px;
+    line-height: 1.5;
+}
+
+.container {
+    max-width: 1280px;
+    margin: 0 auto;
+    opacity: 0;
+    transform: translateY(8px);
+    animation: fadeInUp 0.4s ease-out forwards;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+h1 {
+    font-size: 32px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+.updated {
+    color: var(--text-light);
+    font-size: 15px;
+    margin: 8px 0 20px 0;
+}
+
+.controls {
+    display: flex;
+    gap: 12px;
+}
+
+.btn {
+    font-size: 15px;
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+}
+
+.btn-reset {
+    background: white;
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+
+.btn-reset:hover {
+    background: #f0f0f0;
+}
+
+.btn-export {
+    background: var(--accent);
+    color: white;
+}
+
+.btn-export:hover {
+    background: var(--accent-dark);
+}
+
+.instructor-select {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    max-width: 360px;
+    margin-bottom: 20px;
+}
+
+.instructor-select select {
+    border: none;
+    background: transparent;
+    font-size: 15px;
+    padding: 14px 18px;
+    width: 100%;
+    color: var(--text);
+}
+
+.search-bar-wrapper {
+    position: relative;
+    z-index: 5;
+    margin-bottom: 24px;
+}
+
+.search-box {
+    max-width: 420px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 14px 18px;
+    font-size: 15px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: white;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,122,255,0.15);
+}
+
+.table-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.table-wrapper {
+    position: relative;
+    max-height: 70vh;
+    overflow-y: auto;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Scroll shadows */
+.table-wrapper::before,
+.table-wrapper::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 12px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.table-wrapper::before {
+    top: 0;
+    box-shadow: 0 6px 10px rgba(0,0,0,0.12);
+}
+
+.table-wrapper::after {
+    bottom: 0;
+    box-shadow: 0 -6px 10px rgba(0,0,0,0.12);
+}
+
+/* Base table */
+.table {
+    width: 100%;
+    table-layout: auto;
+}
+
+.table th,
+.table td {
+    padding: 14px 18px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    background: var(--card);
+    white-space: normal;
+    word-break: break-word;
+    max-width: 300px;
+}
+
+/* 🔥 FINAL DESKTOP WIDTH FIX — strongest override */
+table.dataframe.table.table-striped.table-bordered.table-hover td,
+table.dataframe.table.table-striped.table-bordered.table-hover th {
+    white-space: normal !important;
+    word-break: break-word !important;
+    max-width: 300px !important;
+}
+
+ /* Remove pandas inline width that forces table to expand */
+table.dataframe.table.table-striped.table-bordered.table-hover th,
+table.dataframe.table.table-striped.table-bordered.table-hover td {
+width: auto !important;
+max-width: 300px !important;
+
+}
+
+.table th {
+    background: rgba(248,248,248,0.95);
+    font-weight: 600;
+    color: var(--text);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    cursor: pointer;
+    user-select: none;
+}
+
+.table th.sortable::after {
+    content: "⇅";
+    font-size: 11px;
+    margin-left: 6px;
+    color: var(--text-light);
+}
+
+.table th.sorted-asc::after {
+    content: "↑";
+}
+
+.table th.sorted-desc::after {
+    content: "↓";
+}
+
+.table tbody tr:hover {
+    background: rgba(0,122,255,0.04);
+}
+
+.row-fade-in {
+    animation: rowFadeIn 0.25s ease-out;
+}
+
+.table-footer {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.no-results {
+    margin-top: 16px;
+    padding: 16px 18px;
+    border-radius: 12px;
+    background: #fff5f5;
+    color: #c41e3a;
+    font-size: 14px;
+}
+
+/* Loading shimmer */
+.shimmer-overlay {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(120deg, #f5f5f7 0%, #e6e6ea 20%, #f5f5f7 40%, #f5f5f7 100%);
+    background-size: 200% 100%;
+    animation: shimmerMove 0.9s linear infinite, shimmerFade 0.5s ease-out 0.4s forwards;
+    z-index: 999;
+    pointer-events: none;
+}
+
+@keyframes shimmerMove {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+@keyframes shimmerFade {
+    to { opacity: 0; visibility: hidden; }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rowFadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Export area styling */
+#exportArea {
+    padding: 32px;
+    background: #ffffff;
+}
+
+.export-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.export-title {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.export-sub {
+    font-size: 15px;
+    color: #555;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    body { padding: 20px 12px; }
+    .container { max-width: 100%; }
+
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    h1 { font-size: 22px; }
+
+    .controls {
+        width: 100%;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .btn { width: 100%; padding: 12px; font-size: 16px; }
+
+    .search-bar-wrapper {
+        position: sticky;
+        top: 0;
+        padding: 8px 0 10px;
+        margin-bottom: 12px;
+        backdrop-filter: blur(18px);
+    }
+
+    .table-wrapper {
+        max-height: calc(100vh - 220px);
+    }
+
+    .table th,
+    .table td {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #000;
+        --card: #1c1c1e;
+        --text: #f5f5f7;
+        --text-light: #a1a1a6;
+        --border: #3a3a3c;
+        --accent: #0a84ff;
+        --accent-dark: #0060df;
+    }
+
+    body {
+        background: radial-gradient(circle at top, #1c1c1e 0, #000 55%);
+    }
+
+    .table th,
+    .table td {
+        background: #1c1c1e;
+        border-bottom-color: #3a3a3c;
+    }
+
+    .table th {
+        background: rgba(44,44,46,0.98);
+    }
+
+    .table tbody tr:hover {
+        background: rgba(10,132,255,0.18);
+    }
+
+    .search-input {
+        background: rgba(44,44,46,0.9);
+        color: var(--text);
+        border-color: #3a3a3c;
+    }
+
+    #exportArea {
+        background: #ffffff;
+        color: #000000;
+    }
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div id="shimmerOverlay" class="shimmer-overlay"></div>
+
+<div class="container">
+
+<header> <h1>Student Heads Up Report{{ ' – ' + instructor if instructor and instructor != "Select an Instructor" else '' }}</h1> <div class="controls"> <button class="btn btn-reset" onclick="window.location.href='/'">← Back</button> <button id="exportBtn" class="btn btn-export">Export as PNG</button> </div> </header>
+
+<div class="updated">Updated: {{ updated_at }}</div>
+
+{% if message %} {{ message | safe }} {% endif %}
+
+<div class="instructor-select"> <select onchange="window.location.href='/?instructor=' + encodeURIComponent(this.value)"> <option value="" disabled {% if not instructor or instructor == "Select an Instructor" %}selected{% endif %}> Select Instructor </option> {% for inst in instructors %} <option value="{{ inst }}" {% if inst == instructor %}selected{% endif %}>{{ inst }}</option> {% endfor %} </select> </div>
+
+<div class="search-bar-wrapper"> <div class="search-box"> <input type="text" id="searchInput" class="search-input" placeholder="Search table…"> </div> </div>
+
+{% if table_html %} <!-- EXPORT AREA (ONLY THIS IS CAPTURED IN PNG) --> <div id="exportArea" data-instructor="{{ instructor }}">
+
+<div class="export-header">
+    <div class="export-title">Student Heads Up Report</div>
+    <div class="export-sub" id="exportInstructorLine">
+        Instructor: {{ instructor if instructor and instructor != "Select an Instructor" else "N/A" }}
+    </div>
+    <div class="export-sub" id="exportTimestampLine">
+        Exported:
+    </div>
+</div>
+
+<div class="table-card">
+    <div class="table-wrapper">
+        {{ table_html | safe }}
+    </div>
+</div>
+
+<div id="tableFooter" class="table-footer"></div>
+<div id="noResults" class="no-results" style="display:none;">No matches found.</div>
+
+</div> {% endif %}
+
+</div>
+
+<script> /* ------------------------------- TABLE FEATURES (search, sort) --------------------------------*/ function initTableFeatures() { const table = document.querySelector('.table'); const wrapper = document.querySelector('.table-wrapper'); const footer = document.getElementById('tableFooter'); const noResults = document.getElementById('noResults');
+
+if (!table || !wrapper || !footer) return;
+
+const tbody = table.tBodies[0];
+
+/* Scroll shadows */
+function updateShadows() {
+    const top = wrapper.scrollTop;
+    const max = wrapper.scrollHeight - wrapper.clientHeight;
+    wrapper.classList.toggle('shadow-top', top > 0);
+    wrapper.classList.toggle('shadow-bottom', top < max - 1);
+}
+wrapper.addEventListener('scroll', updateShadows);
+updateShadows();
+
+/* Footer count */
+function updateFooter() {
+    const rows = Array.from(tbody.rows);
+    const visible = rows.filter(r => r.style.display !== 'none').length;
+    footer.textContent = `Showing ${visible} of ${rows.length} entries`;
+}
+
+/* Sorting */
+const sortState = {};
+
+function getCellValue(row, index) {
+    const val = row.children[index].textContent.trim();
+    const num = Number(val);
+    return isNaN(num) ? val.toLowerCase() : num;
+}
+
+function sortTableByColumn(index) {
+    const rows = Array.from(tbody.rows);
+    const current = sortState[index] || 'asc';
+    const multiplier = current === 'asc' ? 1 : -1;
+
+    rows.sort((a, b) => {
+        const A = getCellValue(a, index);
+        const B = getCellValue(b, index);
+        if (A < B) return -1 * multiplier;
+        if (A > B) return 1 * multiplier;
+        return 0;
+    });
+
+    sortState[index] = current === 'asc' ? 'desc' : 'asc';
+
+    document.querySelectorAll('th').forEach((th, i) => {
+        th.classList.remove('sorted-asc', 'sorted-desc');
+        if (i === index) {
+            th.classList.add(sortState[index] === 'asc' ? 'sorted-asc' : 'sorted-desc');
+        }
+    });
+
+    rows.forEach(r => tbody.appendChild(r));
+    updateFooter();
+}
+
+document.querySelectorAll('th').forEach((th, i) => {
+    th.classList.add('sortable');
+    th.addEventListener('click', () => sortTableByColumn(i));
+});
+
+/* Search */
+const searchInput = document.getElementById('searchInput');
+if (searchInput) {
+    searchInput.addEventListener('keyup', function () {
+        const filter = this.value.toLowerCase();
+        let visible = 0;
+
+        Array.from(tbody.rows).forEach(row => {
+            const match = row.textContent.toLowerCase().includes(filter);
+            row.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+
+        noResults.style.display = visible === 0 ? 'block' : 'none';
+        updateFooter();
+    });
+}
+
+updateFooter();
+
+}
+
+/* ------------------------------- CENTRAL TIME EXPORT TIMESTAMP --------------------------------*/ function getCentralTimeString() { const now = new Date(); return now.toLocaleString("en-US", { timeZone: "America/Chicago", year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }); }
+
+/* ------------------------------- FILENAME SANITIZER (Option B) Keep capitalization, replace spaces with underscores --------------------------------*/ function sanitizeInstructorName(name) { if (!name) return "report"; return name.replace(/+/g, "_"); }
+
+/* ------------------------------- PNG EXPORT (mobile-safe) --------------------------------*/ function initExport() { const exportBtn = document.getElementById('exportBtn'); const exportArea = document.getElementById('exportArea'); if (!exportBtn || !exportArea) return;
+
+exportBtn.addEventListener('click', function () {
+
+    /* Update timestamp */
+    const exportTimestampLine = document.getElementById('exportTimestampLine');
+    if (exportTimestampLine) {
+        exportTimestampLine.textContent = "Exported: " + getCentralTimeString();
+    }
+
+    /* Hide UI elements */
+    const header = document.querySelector('header');
+    const controls = document.querySelector('.controls');
+    const searchBar = document.querySelector('.search-bar-wrapper');
+    const instructorSelect = document.querySelector('.instructor-select');
+    const shimmer = document.getElementById('shimmerOverlay');
+
+    const toHide = [header, controls, searchBar, instructorSelect, shimmer].filter(Boolean);
+    toHide.forEach(el => el.style.visibility = 'hidden');
+
+    /* Force white background */
+    const originalBackground = document.body.style.background;
+    document.body.style.background = '#ffffff';
+
+    /* Capture */
+    html2canvas(exportArea, {
+        scale: 2,
+        useCORS: true,
+        scrollX: 0,
+        scrollY: -window.scrollY,
+        windowWidth: document.documentElement.offsetWidth,
+        backgroundColor: '#ffffff'
+    }).then(canvas => {
+
+        canvas.toBlob(function (blob) {
+            const link = document.createElement("a");
+
+            const instructor = exportArea.getAttribute('data-instructor') || '';
+            const safeInstructor = sanitizeInstructorName(instructor);
+
+            const filename = `${safeInstructor}_heads_up_report.png`;
+
+            link.download = filename;
+            link.href = URL.createObjectURL(blob);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+    }).finally(() => {
+        /* Restore UI */
+        toHide.forEach(el => el.style.visibility = '');
+        document.body.style.background = originalBackground;
+    });
+});
+
+}
+
+/* ------------------------------- INIT ON LOAD --------------------------------*/ window.addEventListener('load', () => { const shimmer = document.getElementById('shimmerOverlay'); if (shimmer) shimmer.style.display = 'none';
+
+initTableFeatures();
+initExport();
+
+}); </script>
+
+</body> </html>    background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; max-width: 360px; margin-bottom: 20px; }
+
+.instructor-select select { border: none; background: transparent; font-size: 15px; padding: 14px 18px; width: 100%; color: var(--text); }
+
+.search-bar-wrapper { position: relative; z-index: 5; margin-bottom: 24px; }
+
+.search-box { max-width: 420px; }
+
+.search-input { width: 100%; padding: 14px 18px; font-size: 15px; border: 1px solid var(--border); border-radius: 999px; background: white; transition: border-color 0.2s, box-shadow 0.2s, background 0.2s; }
+
+.search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,122,255,0.15); }
+
+.table-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; }
+
+.table-wrapper { position: relative; max-height: 70vh; overflow-y: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* Scroll shadows */ .table-wrapper::before, .table-wrapper::after { content: ""; position: absolute; left: 0; right: 0; height: 12px; pointer-events: none; opacity: 0; transition: opacity 0.2s ease; }
+
+.table-wrapper::before { top: 0; box-shadow: 0 6px 10px rgba(0,0,0,0.12); }
+
+.table-wrapper::after { bottom: 0; box-shadow: 0 -6px 10px rgba(0,0,0,0.12); }
+
+/* Base table */ .table { width: 100%; table-layout: auto; }
+
+.table th, .table td { padding: 14px 18px; text-align: left; border-bottom: 1px solid var(--border); background: var(--card); white-space: normal; word-break: break-word; max-width: 300px; }
+
+/* 🔥 FINAL DESKTOP WIDTH FIX — strongest override */ table.dataframe.table.table-striped.table-bordered.table-hover td, table.dataframe.table.table-striped.table-bordered.table-hover th { white-space: normal !important; word-break: break-word !important; max-width: 300px !important; }
+
+/* Remove pandas inline width that forces table to expand */ table.dataframe.table.table-striped.table-bordered.table-hover th, table.dataframe.table.table-striped.table-bordered.table-hover td { width: auto !important; max-width: 300px !important;
+
+
+}
+
+
+.table th { background: rgba(248,248,248,0.95); font-weight: 600; color: var(--text); position: sticky; top: 0; z-index: 2; cursor: pointer; user-select: none; }
+
+.table th.sortable::after { content: "⇅"; font-size: 11px; margin-left: 6px; color: var(--text-light); }
+
+.table th.sorted-asc::after { content: "↑"; }
+
+.table th.sorted-desc::after { content: "↓"; }
+
+.table tbody tr:hover { background: rgba(0,122,255,0.04); }
+
+.row-fade-in { animation: rowFadeIn 0.25s ease-out; }
+
+.table-footer { margin-top: 12px; font-size: 13px; color: var(--text-light); display: flex; justify-content: space-between; align-items: center; }
+
+.no-results { margin-top: 16px; padding: 16px 18px; border-radius: 12px; background: #fff5f5; color: #c41e3a; font-size: 14px; }
+
+/* Loading shimmer */ .shimmer-overlay { position: fixed; inset: 0; background: linear-gradient(120deg, #f5f5f7 0%, #e6e6ea 20%, #f5f5f7 40%, #f5f5f7 100%); background-size: 200% 100%; animation: shimmerMove 0.9s linear infinite, shimmerFade 0.5s ease-out 0.4s forwards; z-index: 999; pointer-events: none; }
+
+@keyframes shimmerMove { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+@keyframes shimmerFade { to { opacity: 0; visibility: hidden; } }
+
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+@keyframes rowFadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Export area styling */ #exportArea { padding: 32px; background: #ffffff; }
+
+.export-header { text-align: center; margin-bottom: 24px; }
+
+.export-title { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+
+.export-sub { font-size: 15px; color: #555; }
+
+/* Mobile */ @media (max-width: 768px) { body { padding: 20px 12px; } .container { max-width: 100%; }
+
+header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+h1 { font-size: 22px; }
+
+.controls {
+    width: 100%;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn { width: 100%; padding: 12px; font-size: 16px; }
+
+.search-bar-wrapper {
+    position: sticky;
+    top: 0;
+    padding: 8px 0 10px;
+    margin-bottom: 12px;
+    backdrop-filter: blur(18px);
+}
+
+.table-wrapper {
+    max-height: calc(100vh - 220px);
+}
+
+.table th,
+.table td {
+    padding: 10px 12px;
+    font-size: 13px;
+}
+
+}
+
+/* Dark mode */ @media (prefers-color-scheme: dark) { :root { --bg: #000; --card: #1c1c1e; --text: #f5f5f7; --text-light: #a1a1a6; --border: #3a3a3c; --accent: #0a84ff; --accent-dark: #0060df; }
+
+body {
+    background: radial-gradient(circle at top, #1c1c1e 0, #000 55%);
+}
+
+.table th,
+.table td {
+    background: #1c1c1e;
+    border-bottom-color: #3a3a3c;
+}
+
+.table th {
+    background: rgba(44,44,46,0.98);
+}
+
+.table tbody tr:hover {
+    background: rgba(10,132,255,0.18);
+}
+
+.search-input {
+    background: rgba(44,44,46,0.9);
+    color: var(--text);
+    border-color: #3a3a3c;
+}
+
+#exportArea {
+    background: #ffffff;
+    color: #000000;
+}
+
+}
+
+
+</style>
+
+</head>
+
+<body>
+
+<div id="shimmerOverlay" class="shimmer-overlay"></div>
+
+<div class="container">
+
+<header> <h1>Student Heads Up Report{{ ' – ' + instructor if instructor and instructor != "Select an Instructor" else '' }}</h1> <div class="controls"> <button class="btn btn-reset" onclick="[window.location](https://window.location).href='/'">← Back</button> <button id="exportBtn" class="btn btn-export">Export as PNG</button> </div> </header>
+
+<div class="updated">Updated: {{ updated_at }}</div>
+
+{% if message %} {{ message | safe }} {% endif %}
+
+<div class="instructor-select"> <select onchange="[window.location](https://window.location).href='/?instructor=' + encodeURIComponent([this.value](https://this.value))"> <option value="" disabled {% if not instructor or instructor == "Select an Instructor" %}selected{% endif %}> Select Instructor </option> {% for inst in instructors %} <option value="{{ inst }}" {% if inst == instructor %}selected{% endif %}>{{ inst }}</option> {% endfor %} </select> </div>
+
+<div class="search-bar-wrapper"> <div class="search-box"> <input type="text" id="searchInput" class="search-input" placeholder="Search table…"> </div> </div>
+
+{% if table_html %} <!-- EXPORT AREA (ONLY THIS IS CAPTURED IN PNG) --> <div id="exportArea" data-instructor="{{ instructor }}">
+
+
+<div class="export-header"> <div class="export-title">Student Heads Up Report</div> <div class="export-sub" id="exportInstructorLine"> Instructor: {{ instructor if instructor and instructor != "Select an Instructor" else "N/A" }} </div> <div class="export-sub" id="exportTimestampLine"> Exported: </div> </div>
+
+<div class="table-card"> <div class="table-wrapper"> {{ table_html | safe }} </div> </div>
+
+<div id="tableFooter" class="table-footer"></div> <div id="noResults" class="no-results" style="display:none;">No matches found.</div>
+
+
+</div> {% endif %}
+
+</div>
+
+<script> /\* ------------------------------- TABLE FEATURES (search, sort) --------------------------------\*/ function initTableFeatures() { const table = document.querySelector('.table'); const wrapper = document.querySelector('.table-wrapper'); const footer = document.getElementById('tableFooter'); const noResults = document.getElementById('noResults');
+
+
+if (!table || !wrapper || !footer) return;
+
+const tbody = table.tBodies[0];
+
+/* Scroll shadows */ function updateShadows() { const top = wrapper.scrollTop; const max = wrapper.scrollHeight - wrapper.clientHeight; wrapper.classList.toggle('shadow-top', top > 0); wrapper.classList.toggle('shadow-bottom', top < max - 1); } wrapper.addEventListener('scroll', updateShadows); updateShadows();
+
+/* Footer count */ function updateFooter() { const rows = Array.from(tbody.rows); const visible = rows.filter(r => r.style.display !== 'none').length; footer.textContent = Showing ${visible} of ${rows.length} entries; }
+
+/* Sorting */ const sortState = {};
+
+function getCellValue(row, index) { const val = row.children[index].textContent.trim(); const num = Number(val); return isNaN(num) ? val.toLowerCase() : num; }
+
+function sortTableByColumn(index) { const rows = Array.from(tbody.rows); const current = sortState[index] || 'asc'; const multiplier = current === 'asc' ? 1 : -1;
+
+rows.sort((a, b) => {
+    const A = getCellValue(a, index);
+    const B = getCellValue(b, index);
+    if (A < B) return -1 * multiplier;
+    if (A > B) return 1 * multiplier;
+    return 0;
+});
+
+sortState[index] = current === 'asc' ? 'desc' : 'asc';
+
+document.querySelectorAll('th').forEach((th, i) => {
+    th.classList.remove('sorted-asc', 'sorted-desc');
+    if (i === index) {
+        th.classList.add(sortState[index] === 'asc' ? 'sorted-asc' : 'sorted-desc');
+    }
+});
+
+rows.forEach(r => tbody.appendChild(r));
+updateFooter();
+
+}
+
+document.querySelectorAll('th').forEach((th, i) => { th.classList.add('sortable'); th.addEventListener('click', () => sortTableByColumn(i)); });
+
+/* Search */ const searchInput = document.getElementById('searchInput'); if (searchInput) { searchInput.addEventListener('keyup', function () { const filter = this.value.toLowerCase(); let visible = 0;
+
+    Array.from(tbody.rows).forEach(row => {
+        const match = row.textContent.toLowerCase().includes(filter);
+        row.style.display = match ? '' : 'none';
+        if (match) visible++;
+    });
+
+    noResults.style.display = visible === 0 ? 'block' : 'none';
+    updateFooter();
+});
+
+}
+
+updateFooter();
+
+
+}
+
+/\* ------------------------------- CENTRAL TIME EXPORT TIMESTAMP --------------------------------\*/ function getCentralTimeString() { const now = new Date(); return now.toLocaleString("en-US", { timeZone: "America/Chicago", year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }); }
+
+/\* ------------------------------- FILENAME SANITIZER (Option B) Keep capitalization, replace spaces with underscores --------------------------------\*/ function sanitizeInstructorName(name) { if (!name) return "report"; return [name.replace](https://name.replace)(/+/g, "\_"); }
+
+/\* ------------------------------- PNG EXPORT (mobile-safe) --------------------------------\*/ function initExport() { const exportBtn = document.getElementById('exportBtn'); const exportArea = document.getElementById('exportArea'); if (!exportBtn || !exportArea) return;
+
+
+exportBtn.addEventListener('click', function () {
+
+/* Update timestamp */
+const exportTimestampLine = document.getElementById('exportTimestampLine');
+if (exportTimestampLine) {
+    exportTimestampLine.textContent = "Exported: " + getCentralTimeString();
+}
+
+/* Hide UI elements */
+const header = document.querySelector('header');
+const controls = document.querySelector('.controls');
+const searchBar = document.querySelector('.search-bar-wrapper');
+const instructorSelect = document.querySelector('.instructor-select');
+const shimmer = document.getElementById('shimmerOverlay');
+
+const toHide = [header, controls, searchBar, instructorSelect, shimmer].filter(Boolean);
+toHide.forEach(el => el.style.visibility = 'hidden');
+
+/* Force white background */
+const originalBackground = document.body.style.background;
+document.body.style.background = '#ffffff';
+
+/* Capture */
+html2canvas(exportArea, {
+    scale: 2,
+    useCORS: true,
+    scrollX: 0,
+    scrollY: -window.scrollY,
+    windowWidth: document.documentElement.offsetWidth,
+    backgroundColor: '#ffffff'
+}).then(canvas => {
+
+    canvas.toBlob(function (blob) {
+        const link = document.createElement("a");
+
+        const instructor = exportArea.getAttribute('data-instructor') || '';
+        const safeInstructor = sanitizeInstructorName(instructor);
+
+        const filename = `${safeInstructor}_heads_up_report.png`;
+
+        link.download = filename;
+        link.href = URL.createObjectURL(blob);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+
+}).finally(() => {
+    /* Restore UI */
+    toHide.forEach(el => el.style.visibility = '');
+    document.body.style.background = originalBackground;
+});
+
+});
+
+
+}
+
+/\* ------------------------------- INIT ON LOAD --------------------------------\*/ window.addEventListener('load', () => { const shimmer = document.getElementById('shimmerOverlay'); if (shimmer) [shimmer.style.display](https://shimmer.style.display) = 'none';
+
+
+initTableFeatures(); initExport();
+
+
+}); </script>
+
+</body> </html><!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Student Heads Up Report{{ ' – ' + instructor if instructor and instructor != "Select an Instructor" else '' }}</title>
+
+<!-- html2canvas for PNG export --> <script src="<https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js>"></script>
+
+<style> :root { --bg:           #f5f5f7; --card:         #ffffff; --text:         #1d1d1f; --text-light:   #6e6e73; --border:       #d2d2d7; --accent:       #007aff; --accent-dark:  #0066cc; --radius:       16px; --shadow:       0 4px 30px rgba(0,0,0,0.08); }
+
+
+body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 40px 20px; line-height: 1.5; }
+
+.container { max-width: 1280px; margin: 0 auto; opacity: 0; transform: translateY(8px); animation: fadeInUp 0.4s ease-out forwards; }
+
+header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+
+h1 { font-size: 32px; font-weight: 600; margin: 0; letter-spacing: -0.5px; }
+
+.updated { color: var(--text-light); font-size: 15px; margin: 8px 0 20px 0; }
+
+.controls { display: flex; gap: 12px; }
+
+.btn { font-size: 15px; font-weight: 500; padding: 10px 20px; border-radius: var(--radius); transition: all 0.2s ease; cursor: pointer; border: none; }
+
+.btn-reset { background: white; border: 1px solid var(--border); color: var(--text); }
+
+.btn-reset:hover { background: #f0f0f0; }
+
+.btn-export { background: var(--accent); color: white; }
+
+.btn-export:hover { background: var(--accent-dark); }
+
+.instructor-select { background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; max-width: 360px; margin-bottom: 20px; }
+
+.instructor-select select { border: none; background: transparent; font-size: 15px; padding: 14px 18px; width: 100%; color: var(--text); }
+
+.search-bar-wrapper { position: relative; z-index: 5; margin-bottom: 24px; }
+
+.search-box { max-width: 420px; }
+
+.search-input { width: 100%; padding: 14px 18px; font-size: 15px; border: 1px solid var(--border); border-radius: 999px; background: white; transition: border-color 0.2s, box-shadow 0.2s, background 0.2s; }
+
+.search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,122,255,0.15); }
+
+.table-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; }
+
+.table-wrapper { position: relative; max-height: 70vh; overflow-y: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* Scroll shadows */ .table-wrapper::before, .table-wrapper::after { content: ""; position: absolute; left: 0; right: 0; height: 12px; pointer-events: none; opacity: 0; transition: opacity 0.2s ease; }
+
+.table-wrapper::before { top: 0; box-shadow: 0 6px 10px rgba(0,0,0,0.12); }
+
+.table-wrapper::after { bottom: 0; box-shadow: 0 -6px 10px rgba(0,0,0,0.12); }
+
+/* Base table */ .table { width: 100%; table-layout: auto; }
+
+.table th, .table td { padding: 14px 18px; text-align: left; border-bottom: 1px solid var(--border); background: var(--card); white-space: normal; word-break: break-word; max-width: 300px; }
+
+/* 🔥 FINAL DESKTOP WIDTH FIX — strongest override */ table.dataframe.table.table-striped.table-bordered.table-hover td, table.dataframe.table.table-striped.table-bordered.table-hover th { white-space: normal !important; word-break: break-word !important; max-width: 300px !important; }
+
+/* Remove pandas inline width that forces table to expand */ table.dataframe.table.table-striped.table-bordered.table-hover th, table.dataframe.table.table-striped.table-bordered.table-hover td { width: auto !important; max-width: 300px !important;
+
+
+}
+
+
+.table th { background: rgba(248,248,248,0.95); font-weight: 600; color: var(--text); position: sticky; top: 0; z-index: 2; cursor: pointer; user-select: none; }
+
+.table th.sortable::after { content: "⇅"; font-size: 11px; margin-left: 6px; color: var(--text-light); }
+
+.table th.sorted-asc::after { content: "↑"; }
+
+.table th.sorted-desc::after { content: "↓"; }
+
+.table tbody tr:hover { background: rgba(0,122,255,0.04); }
+
+.row-fade-in { animation: rowFadeIn 0.25s ease-out; }
+
+.table-footer { margin-top: 12px; font-size: 13px; color: var(--text-light); display: flex; justify-content: space-between; align-items: center; }
+
+.no-results { margin-top: 16px; padding: 16px 18px; border-radius: 12px; background: #fff5f5; color: #c41e3a; font-size: 14px; }
+
+/* Loading shimmer */ .shimmer-overlay { position: fixed; inset: 0; background: linear-gradient(120deg, #f5f5f7 0%, #e6e6ea 20%, #f5f5f7 40%, #f5f5f7 100%); background-size: 200% 100%; animation: shimmerMove 0.9s linear infinite, shimmerFade 0.5s ease-out 0.4s forwards; z-index: 999; pointer-events: none; }
+
+@keyframes shimmerMove { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+@keyframes shimmerFade { to { opacity: 0; visibility: hidden; } }
+
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+@keyframes rowFadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Export area styling */ #exportArea { padding: 32px; background: #ffffff; }
+
+.export-header { text-align: center; margin-bottom: 24px; }
+
+.export-title { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+
+.export-sub { font-size: 15px; color: #555; }
+
+/* Mobile */ @media (max-width: 768px) { body { padding: 20px 12px; } .container { max-width: 100%; }
+
+header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+h1 { font-size: 22px; }
+
+.controls {
+    width: 100%;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn { width: 100%; padding: 12px; font-size: 16px; }
+
+.search-bar-wrapper {
+    position: sticky;
+    top: 0;
+    padding: 8px 0 10px;
+    margin-bottom: 12px;
+    backdrop-filter: blur(18px);
+}
+
+.table-wrapper {
+    max-height: calc(100vh - 220px);
+}
+
+.table th,
+.table td {
+    padding: 10px 12px;
+    font-size: 13px;
+}
+
+}
+
+/* Dark mode */ @media (prefers-color-scheme: dark) { :root { --bg: #000; --card: #1c1c1e; --text: #f5f5f7; --text-light: #a1a1a6; --border: #3a3a3c; --accent: #0a84ff; --accent-dark: #0060df; }
+
+body {
+    background: radial-gradient(circle at top, #1c1c1e 0, #000 55%);
+}
+
+.table th,
+.table td {
+    background: #1c1c1e;
+    border-bottom-color: #3a3a3c;
+}
+
+.table th {
+    background: rgba(44,44,46,0.98);
+}
+
+.table tbody tr:hover {
+    background: rgba(10,132,255,0.18);
+}
+
+.search-input {
+    background: rgba(44,44,46,0.9);
+    color: var(--text);
+    border-color: #3a3a3c;
+}
+
+#exportArea {
+    background: #ffffff;
+    color: #000000;
+}
+
+}
+
+
+</style>
+
+</head>
+
+<body>
+
+<div id="shimmerOverlay" class="shimmer-overlay"></div>
+
+<div class="container">
+
+<header> <h1>Student Heads Up Report{{ ' – ' + instructor if instructor and instructor != "Select an Instructor" else '' }}</h1> <div class="controls"> <button class="btn btn-reset" onclick="[window.location](https://window.location).href='/'">← Back</button> <button id="exportBtn" class="btn btn-export">Export as PNG</button> </div> </header>
+
+<div class="updated">Updated: {{ updated_at }}</div>
+
+{% if message %} {{ message | safe }} {% endif %}
+
+<div class="instructor-select"> <select onchange="[window.location](https://window.location).href='/?instructor=' + encodeURIComponent([this.value](https://this.value))"> <option value="" disabled {% if not instructor or instructor == "Select an Instructor" %}selected{% endif %}> Select Instructor </option> {% for inst in instructors %} <option value="{{ inst }}" {% if inst == instructor %}selected{% endif %}>{{ inst }}</option> {% endfor %} </select> </div>
+
+<div class="search-bar-wrapper"> <div class="search-box"> <input type="text" id="searchInput" class="search-input" placeholder="Search table…"> </div> </div>
+
+{% if table_html %} <!-- EXPORT AREA (ONLY THIS IS CAPTURED IN PNG) --> <div id="exportArea" data-instructor="{{ instructor }}">
+
+
+<div class="export-header"> <div class="export-title">Student Heads Up Report</div> <div class="export-sub" id="exportInstructorLine"> Instructor: {{ instructor if instructor and instructor != "Select an Instructor" else "N/A" }} </div> <div class="export-sub" id="exportTimestampLine"> Exported: </div> </div>
+
+<div class="table-card"> <div class="table-wrapper"> {{ table_html | safe }} </div> </div>
+
+<div id="tableFooter" class="table-footer"></div> <div id="noResults" class="no-results" style="display:none;">No matches found.</div>
+
+
+</div> {% endif %}
+
+</div>
+
+<script> /\* ------------------------------- TABLE FEATURES (search, sort) --------------------------------\*/ function initTableFeatures() { const table = document.querySelector('.table'); const wrapper = document.querySelector('.table-wrapper'); const footer = document.getElementById('tableFooter'); const noResults = document.getElementById('noResults');
+
+
+if (!table || !wrapper || !footer) return;
+
+const tbody = table.tBodies[0];
+
+/* Scroll shadows */ function updateShadows() { const top = wrapper.scrollTop; const max = wrapper.scrollHeight - wrapper.clientHeight; wrapper.classList.toggle('shadow-top', top > 0); wrapper.classList.toggle('shadow-bottom', top < max - 1); } wrapper.addEventListener('scroll', updateShadows); updateShadows();
+
+/* Footer count */ function updateFooter() { const rows = Array.from(tbody.rows); const visible = rows.filter(r => r.style.display !== 'none').length; footer.textContent = Showing ${visible} of ${rows.length} entries; }
+
+/* Sorting */ const sortState = {};
+
+function getCellValue(row, index) { const val = row.children[index].textContent.trim(); const num = Number(val); return isNaN(num) ? val.toLowerCase() : num; }
+
+function sortTableByColumn(index) { const rows = Array.from(tbody.rows); const current = sortState[index] || 'asc'; const multiplier = current === 'asc' ? 1 : -1;
+
+rows.sort((a, b) => {
+    const A = getCellValue(a, index);
+    const B = getCellValue(b, index);
+    if (A < B) return -1 * multiplier;
+    if (A > B) return 1 * multiplier;
+    return 0;
+});
+
+sortState[index] = current === 'asc' ? 'desc' : 'asc';
+
+document.querySelectorAll('th').forEach((th, i) => {
+    th.classList.remove('sorted-asc', 'sorted-desc');
+    if (i === index) {
+        th.classList.add(sortState[index] === 'asc' ? 'sorted-asc' : 'sorted-desc');
+    }
+});
+
+rows.forEach(r => tbody.appendChild(r));
+updateFooter();
+
+}
+
+document.querySelectorAll('th').forEach((th, i) => { th.classList.add('sortable'); th.addEventListener('click', () => sortTableByColumn(i)); });
+
+/* Search */ const searchInput = document.getElementById('searchInput'); if (searchInput) { searchInput.addEventListener('keyup', function () { const filter = this.value.toLowerCase(); let visible = 0;
+
+    Array.from(tbody.rows).forEach(row => {
+        const match = row.textContent.toLowerCase().includes(filter);
+        row.style.display = match ? '' : 'none';
+        if (match) visible++;
+    });
+
+    noResults.style.display = visible === 0 ? 'block' : 'none';
+    updateFooter();
+});
+
+}
+
+updateFooter();
+
+
+}
+
+/\* ------------------------------- CENTRAL TIME EXPORT TIMESTAMP --------------------------------\*/ function getCentralTimeString() { const now = new Date(); return now.toLocaleString("en-US", { timeZone: "America/Chicago", year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }); }
+
+/\* ------------------------------- FILENAME SANITIZER (Option B) Keep capitalization, replace spaces with underscores --------------------------------\*/ function sanitizeInstructorName(name) { if (!name) return "report"; return [name.replace](https://name.replace)(/+/g, "\_"); }
+
+/\* ------------------------------- PNG EXPORT (mobile-safe) --------------------------------\*/ function initExport() { const exportBtn = document.getElementById('exportBtn'); const exportArea = document.getElementById('exportArea'); if (!exportBtn || !exportArea) return;
+
+
+exportBtn.addEventListener('click', function () {
+
+/* Update timestamp */
+const exportTimestampLine = document.getElementById('exportTimestampLine');
+if (exportTimestampLine) {
+    exportTimestampLine.textContent = "Exported: " + getCentralTimeString();
+}
+
+/* Hide UI elements */
+const header = document.querySelector('header');
+const controls = document.querySelector('.controls');
+const searchBar = document.querySelector('.search-bar-wrapper');
+const instructorSelect = document.querySelector('.instructor-select');
+const shimmer = document.getElementById('shimmerOverlay');
+
+const toHide = [header, controls, searchBar, instructorSelect, shimmer].filter(Boolean);
+toHide.forEach(el => el.style.visibility = 'hidden');
+
+/* Force white background */
+const originalBackground = document.body.style.background;
+document.body.style.background = '#ffffff';
+
+/* Capture */
+html2canvas(exportArea, {
+    scale: 2,
+    useCORS: true,
+    scrollX: 0,
+    scrollY: -window.scrollY,
+    windowWidth: document.documentElement.offsetWidth,
+    backgroundColor: '#ffffff'
+}).then(canvas => {
+
+    canvas.toBlob(function (blob) {
+        const link = document.createElement("a");
+
+        const instructor = exportArea.getAttribute('data-instructor') || '';
+        const safeInstructor = sanitizeInstructorName(instructor);
+
+        const filename = `${safeInstructor}_heads_up_report.png`;
+
+        link.download = filename;
+        link.href = URL.createObjectURL(blob);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+
+}).finally(() => {
+    /* Restore UI */
+    toHide.forEach(el => el.style.visibility = '');
+    document.body.style.background = originalBackground;
+});
+
+});
+
+
+}
+
+/\* ------------------------------- INIT ON LOAD --------------------------------\*/ window.addEventListener('load', () => { const shimmer = document.getElementById('shimmerOverlay'); if (shimmer) [shimmer.style.display](https://shimmer.style.display) = 'none';
+
+
+initTableFeatures(); initExport();
+
+
+}); </script>
+
+</body> </html>>
