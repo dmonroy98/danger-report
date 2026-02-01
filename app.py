@@ -163,7 +163,8 @@ def danger_report(path=''):
             '</div>'
         )
 
-    updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    from zoneinfo import ZoneInfo
+    updated_at = datetime.now(ZoneInfo("America/Chicago")).strftime("%Y-%m-%d %H:%M:%S")
 
     return render_template(
         "danger_report.html",
