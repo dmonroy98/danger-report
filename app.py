@@ -11,7 +11,6 @@ app = Flask(__name__)
 # ─── Configuration ──────────────────────────────────────────────────────────────
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
-# Find any common Excel file (*.xls*, covers xlsx, xlsm, xls, xlsb)
 excel_files = glob.glob(os.path.join(DATA_DIR, '*.xls*'))
 
 if not excel_files:
@@ -33,13 +32,13 @@ else:
 
 # ─── Day ordering ───────────────────────────────────────────────────────────────
 DAY_ORDER = {
-    'M':   0, 'MO':  0,     # Monday
-    'TU':  1, 'T':   1,     # Tuesday
-    'W':   2, 'WE':  2,     # Wednesday
-    'TH':  3, 'R':   3,     # Thursday
-    'F':   4,               # Friday
-    'SA':  5, 'S':   5,     # Saturday
-    'SU':  6,               # Sunday
+    'M':   0, 'MO':  0,
+    'TU':  1, 'T':   1,
+    'W':   2, 'WE':  2,
+    'TH':  3, 'R':   3,
+    'F':   4,
+    'SA':  5, 'S':   5,
+    'SU':  6,
 }
 
 def extract_day_code(class_name):
@@ -51,7 +50,7 @@ def extract_day_code(class_name):
         return DAY_ORDER.get(code, 99)
     return 99
 
-# ─── Generate table HTML with inline row colors ─────────────────────────────────
+# ─── Generate table HTML ────────────────────────────────────────────────────────
 def get_table_html(instructor):
     if EXCEL_PATH is None:
         return '<p style="color: red; font-weight: bold; padding: 20px;">No valid Excel file available in /data folder.</p>'
@@ -65,10 +64,8 @@ def get_table_html(instructor):
         df = pd.read_excel(EXCEL_PATH, sheet_name=instructor, engine='openpyxl')
         df = df.fillna('')
 
-        # Normalize column names
         df.columns = df.columns.str.strip().str.replace(r'\s+', ' ', regex=True)
 
-        # Build sort columns dynamically
         sort_cols = []
         ascending = []
 
@@ -76,7 +73,7 @@ def get_table_html(instructor):
             df['sort_day'] = df['Class Name'].apply(extract_day_code)
 
             sort_cols.append('sort_day')
-            ascending.append(True)   # Monday (0) first
+            ascending.append(True)
 
             sort_cols.append('Class Name')
             ascending.append(True)
@@ -85,7 +82,7 @@ def get_table_html(instructor):
                 try:
                     df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
                     sort_cols.append('Date')
-                    ascending.append(False)  # newest first
+                    ascending.append(False)
                 except Exception as date_err:
                     print(f"Date parsing failed for {instructor}: {date_err}")
 
@@ -96,30 +93,22 @@ def get_table_html(instructor):
         else:
             print(f"Warning: No 'Class Name' column → no day sorting for {instructor}")
 
-        # ─── Inline row colors using Styler ─────────────────────────────────────
         def row_background(row):
             day_num = extract_day_code(row.get('Class Name', pd.NA))
             colors = {
-                0: '#e6f3ff',   # monday    light blue
-                1: '#fff0e6',   # tuesday   light peach
-                2: '#f0fff0',   # wednesday light green
-                3: '#fff5e6',   # thursday  light orange
-                4: '#f8e6ff',   # friday    light lavender
-                5: '#f0f8ff',   # saturday  light cyan
-                6: '#fffafa',   # sunday    almost white
-                99: '#f5f5f5'   # unknown   light gray
+                0: '#e6f3ff', 1: '#fff0e6', 2: '#f0fff0', 3: '#fff5e6',
+                4: '#f8e6ff', 5: '#f0f8ff', 6: '#fffafa', 99: '#f5f5f5'
             }
             bg_color = colors.get(day_num, '#ffffff')
             return [f'background-color: {bg_color}'] * len(row)
 
-        # Apply styling
         styled = df.style.apply(row_background, axis=1)
-        styled = styled.set_table_classes("table table-striped table-bordered table-hover")
         styled = styled.set_properties(**{'text-align': 'left'})
 
         table_html = styled.to_html(
             escape=False,
             index=False,
+            classes="table table-striped table-bordered table-hover",
             border=0,
             justify="left"
         )
