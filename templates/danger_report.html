@@ -163,12 +163,43 @@
             overflow: hidden;
         }
 
-        /* Vertical + horizontal scroll wrapper */
+        /* Vertical + horizontal scroll wrapper with scroll shadows */
         .table-wrapper {
+            position: relative;
             max-height: 70vh;
             overflow-y: auto;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
+        }
+
+        .table-wrapper::before,
+        .table-wrapper::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .table-wrapper::before {
+            top: 0;
+            box-shadow: 0 6px 10px rgba(0,0,0,0.12);
+        }
+
+        .table-wrapper::after {
+            bottom: 0;
+            box-shadow: 0 -6px 10px rgba(0,0,0,0.12);
+        }
+
+        .table-wrapper.shadow-top::before {
+            opacity: 1;
+        }
+
+        .table-wrapper.shadow-bottom::after {
+            opacity: 1;
         }
 
         .table {
@@ -192,6 +223,23 @@
             position: sticky;
             top: 0;
             z-index: 2;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .table th.sortable::after {
+            content: "⇅";
+            font-size: 11px;
+            margin-left: 6px;
+            color: var(--text-light);
+        }
+
+        .table th.sorted-asc::after {
+            content: "↑";
+        }
+
+        .table th.sorted-desc::after {
+            content: "↓";
         }
 
         .table tbody tr:last-child td {
@@ -200,6 +248,10 @@
 
         .table tbody tr:hover {
             background: rgba(0,122,255,0.04);
+        }
+
+        .row-fade-in {
+            animation: rowFadeIn 0.25s ease-out;
         }
 
         .welcome,
@@ -227,7 +279,40 @@
             margin: 0 auto 24px;
         }
 
-        /* Fade-in animation */
+        .table-footer {
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--text-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-footer span {
+            white-space: nowrap;
+        }
+
+        .no-results {
+            margin-top: 16px;
+            padding: 16px 18px;
+            border-radius: 12px;
+            background: #fff5f5;
+            color: #c41e3a;
+            font-size: 14px;
+        }
+
+        /* Loading shimmer overlay */
+        .shimmer-overlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(120deg, #f5f5f7 0%, #e6e6ea 20%, #f5f5f7 40%, #f5f5f7 100%);
+            background-size: 200% 100%;
+            animation: shimmerMove 0.9s linear infinite, shimmerFade 0.5s ease-out 0.4s forwards;
+            z-index: 999;
+            pointer-events: none;
+        }
+
+        /* Animations */
         @keyframes fadeInUp {
             from {
                 opacity: 0;
@@ -236,6 +321,33 @@
             to {
                 opacity: 1;
                 transform: translateY(0);
+            }
+        }
+
+        @keyframes rowFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(4px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shimmerMove {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        @keyframes shimmerFade {
+            to {
+                opacity: 0;
+                visibility: hidden;
             }
         }
 
@@ -338,6 +450,12 @@
             .not-found p {
                 font-size: 15px;
             }
+
+            .table-footer {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
         }
 
         /* Automatic dark mode */
@@ -407,10 +525,21 @@
             .search-bar-wrapper {
                 background: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.6));
             }
+
+            .no-results {
+                background: rgba(255,69,58,0.12);
+                color: #ff453a;
+            }
+
+            .shimmer-overlay {
+                background: linear-gradient(120deg, #1c1c1e 0%, #2c2c2e 20%, #1c1c1e 40%, #000000 100%);
+            }
         }
     </style>
 </head>
 <body>
+
+<div id="shimmerOverlay" class="shimmer-overlay"></div>
 
 <div class="container">
 
@@ -462,31 +591,126 @@
             {{ table_html | safe }}
         </div>
     </div>
+
+    <div id="tableFooter" class="table-footer" data-instructor="{{ instructor }}">
+        <!-- Filled by JS -->
+    </div>
+
+    <div id="noResults" class="no-results" style="display:none;">
+        No matches found. Try adjusting your search.
+    </div>
     {% endif %}
 
 </div>
 
 <script>
-    // Live search
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('keyup', function () {
-            const filter = this.value.toLowerCase();
-            const rows = document.querySelectorAll('.table tbody tr');
-            rows.forEach(row => {
-                row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
+    function initTableFeatures() {
+        const table = document.querySelector('.table');
+        const wrapper = document.querySelector('.table-wrapper');
+        const footer = document.getElementById('tableFooter');
+        const noResults = document.getElementById('noResults');
+        const instructorName = footer ? (footer.dataset.instructor || '') : '';
+
+        if (!table || !table.tBodies.length) return;
+
+        const tbody = table.tBodies[0];
+        const rows = Array.from(tbody.rows);
+
+        // Initial row fade-in
+        rows.forEach(row => row.classList.add('row-fade-in'));
+
+        // Scroll shadow handling
+        function updateShadows() {
+            if (!wrapper) return;
+            const top = wrapper.scrollTop;
+            const max = wrapper.scrollHeight - wrapper.clientHeight;
+            wrapper.classList.toggle('shadow-top', top > 0);
+            wrapper.classList.toggle('shadow-bottom', top < max - 1);
+        }
+
+        if (wrapper) {
+            wrapper.addEventListener('scroll', updateShadows);
+            updateShadows();
+        }
+
+        // Footer update
+        function updateFooter() {
+            if (!footer) return;
+            const allRows = Array.from(tbody.rows);
+            const total = allRows.length;
+            const visible = allRows.filter(r => r.style.display !== 'none').length;
+            let text = `Showing ${visible} of ${total} entries`;
+            if (instructorName && instructorName !== 'Select an Instructor') {
+                text += ` · Instructor: ${instructorName}`;
+            }
+            footer.textContent = text;
+        }
+
+        // Sorting
+        const sortState = {};
+
+        function getCellValue(row, index) {
+            const cell = row.children[index];
+            if (!cell) return '';
+            const dataSort = cell.getAttribute('data-sort');
+            let val = dataSort !== null ? dataSort : cell.textContent.trim();
+
+            // Try to parse leading integer (for "1 | Student Name" style)
+            const match = val.match(/^(\d+)/);
+            if (match) {
+                return Number(match[1]);
+            }
+
+            const num = Number(val);
+            if (!isNaN(num)) return num;
+
+            return val.toLowerCase();
+        }
+
+        function clearSortIndicators() {
+            table.querySelectorAll('th').forEach(th => {
+                th.classList.remove('sorted-asc', 'sorted-desc');
             });
-        });
-    }
+        }
 
-    // PNG export placeholder (kept to avoid JS errors; wire up html2canvas if desired)
-    const exportBtn = document.getElementById('exportBtn');
-    if (exportBtn) {
-        exportBtn.addEventListener('click', function () {
-            alert('PNG export can be wired up here (e.g., with html2canvas).');
-        });
-    }
-</script>
+        function sortTableByColumn(columnIndex) {
+            const headerCells = table.querySelectorAll('thead th');
+            const th = headerCells[columnIndex];
+            if (!th) return;
 
-</body>
-</html>
+            const key = columnIndex;
+            const currentDir = sortState[key] || 'asc';
+            const multiplier = currentDir === 'asc' ? 1 : -1;
+
+            const sortedRows = Array.from(tbody.rows).sort((a, b) => {
+                const aVal = getCellValue(a, columnIndex);
+                const bVal = getCellValue(b, columnIndex);
+
+                if (aVal < bVal) return -1 * multiplier;
+                if (aVal > bVal) return 1 * multiplier;
+                return 0;
+            });
+
+            sortState[key] = currentDir === 'asc' ? 'desc' : 'asc';
+
+            clearSortIndicators();
+            th.classList.add(sortState[key] === 'asc' ? 'sorted-asc' : 'sorted-desc');
+
+            sortedRows.forEach(row => {
+                row.classList.remove('row-fade-in');
+                void row.offsetWidth; // force reflow
+                row.classList.add('row-fade-in');
+                tbody.appendChild(row);
+            });
+
+            updateFooter();
+        }
+
+        // Make headers sortable
+        const headerCells = table.querySelectorAll('thead th');
+        headerCells.forEach((th, index) => {
+            th.classList.add('sortable');
+            th.addEventListener('click', () => sortTableByColumn(index));
+        });
+
+        updateFooter
