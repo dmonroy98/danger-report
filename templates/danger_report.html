@@ -403,6 +403,18 @@
                 color: #000000;
             }
         }
+	
+	/* Override pandas inline widths on the live table */
+	table.dataframe th[style],
+	table.dataframe td[style] {
+	    min-width: 0 !important;
+	    max-width: 260px !important;
+	    width: auto !important;
+	    white-space: normal !important;
+	    word-break: break-word !important;
+	    overflow-wrap: break-word !important;
+}
+
     </style>
 </head>
 
