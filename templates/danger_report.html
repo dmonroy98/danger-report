@@ -18,6 +18,7 @@
             --shadow:       0 4px 30px rgba(0,0,0,0.08);
         }
 
+        /* Base layout */
         body {
             background: var(--bg);
             color: var(--text);
@@ -30,13 +31,16 @@
         .container {
             max-width: 1280px;
             margin: 0 auto;
+            opacity: 0;
+            transform: translateY(8px);
+            animation: fadeInUp 0.4s ease-out forwards;
         }
 
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
         }
 
         h1 {
@@ -48,7 +52,7 @@
 
         .logo-container {
             text-align: center;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
         }
 
         .logo {
@@ -56,12 +60,15 @@
             height: auto;
             display: block;
             margin: 0 auto;
+            opacity: 0;
+            transform: translateY(6px);
+            animation: fadeInUp 0.45s ease-out 0.05s forwards;
         }
 
         .updated {
             color: var(--text-light);
             font-size: 15px;
-            margin: 8px 0 28px 0;
+            margin: 8px 0 20px 0;
         }
 
         .controls {
@@ -104,7 +111,7 @@
             border-radius: var(--radius);
             overflow: hidden;
             max-width: 360px;
-            margin-bottom: 32px;
+            margin-bottom: 20px;
         }
 
         .instructor-select select {
@@ -121,9 +128,15 @@
             box-shadow: 0 0 0 3px rgba(0,122,255,0.2);
         }
 
+        /* Search bar wrapper (for floating behavior on mobile) */
+        .search-bar-wrapper {
+            position: relative;
+            z-index: 5;
+            margin-bottom: 24px;
+        }
+
         .search-box {
             max-width: 420px;
-            margin-bottom: 32px;
         }
 
         .search-input {
@@ -131,9 +144,9 @@
             padding: 14px 18px;
             font-size: 15px;
             border: 1px solid var(--border);
-            border-radius: var(--radius);
+            border-radius: 999px;
             background: white;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
         }
 
         .search-input:focus {
@@ -145,9 +158,17 @@
         .table-card {
             background: var(--card);
             border-radius: var(--radius);
-            overflow: hidden;
             box-shadow: var(--shadow);
             border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        /* Vertical + horizontal scroll wrapper */
+        .table-wrapper {
+            max-height: 70vh;
+            overflow-y: auto;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .table {
@@ -156,16 +177,21 @@
             font-size: 14px;
         }
 
-        .table th, .table td {
+        .table th,
+        .table td {
             padding: 14px 18px;
             text-align: left;
             border-bottom: 1px solid var(--border);
+            background: var(--card);
         }
 
         .table th {
-            background: rgba(248,248,248,0.9);
+            background: rgba(248,248,248,0.95);
             font-weight: 600;
             color: var(--text);
+            position: sticky;
+            top: 0;
+            z-index: 2;
         }
 
         .table tbody tr:last-child td {
@@ -176,7 +202,8 @@
             background: rgba(0,122,255,0.04);
         }
 
-        .welcome, .not-found {
+        .welcome,
+        .not-found {
             text-align: center;
             padding: 60px 24px;
             background: white;
@@ -186,23 +213,200 @@
             max-width: 760px;
         }
 
-        .welcome h2, .not-found h3 {
+        .welcome h2,
+        .not-found h3 {
             margin-bottom: 20px;
             font-size: 28px;
         }
 
-        .welcome p, .not-found p {
+        .welcome p,
+        .not-found p {
             color: var(--text-light);
             font-size: 17px;
             max-width: 580px;
             margin: 0 auto 24px;
         }
 
+        /* Fade-in animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Mobile optimizations */
         @media (max-width: 768px) {
-            body { padding: 24px 16px; }
-            header { flex-direction: column; align-items: flex-start; gap: 20px; }
-            .controls { width: 100%; flex-wrap: wrap; }
-            .logo { max-width: 140px; }
+            body {
+                padding: 20px 12px;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+                margin-bottom: 16px;
+            }
+
+            h1 {
+                font-size: 22px;
+                line-height: 1.3;
+                max-width: 100%;
+            }
+
+            .controls {
+                width: 100%;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .btn {
+                width: 100%;
+                padding: 12px;
+                font-size: 16px;
+            }
+
+            .logo-container {
+                margin-bottom: 16px;
+            }
+
+            .logo {
+                max-width: 130px;
+            }
+
+            .updated {
+                font-size: 14px;
+                margin-bottom: 12px;
+            }
+
+            .instructor-select {
+                max-width: 100%;
+                margin-bottom: 12px;
+            }
+
+            /* Floating, sticky search bar on mobile */
+            .search-bar-wrapper {
+                position: sticky;
+                top: 0;
+                padding: 8px 0 10px;
+                margin-bottom: 12px;
+                backdrop-filter: blur(18px);
+                -webkit-backdrop-filter: blur(18px);
+            }
+
+            .search-box {
+                max-width: 100%;
+            }
+
+            .search-input {
+                border-radius: 999px;
+                padding: 12px 16px;
+                font-size: 15px;
+            }
+
+            .table-wrapper {
+                max-height: calc(100vh - 220px);
+            }
+
+            .table th,
+            .table td {
+                padding: 10px 12px;
+                font-size: 13px;
+                white-space: nowrap;
+            }
+
+            .welcome,
+            .not-found {
+                padding: 40px 20px;
+                margin: 24px auto;
+            }
+
+            .welcome h2,
+            .not-found h3 {
+                font-size: 22px;
+            }
+
+            .welcome p,
+            .not-found p {
+                font-size: 15px;
+            }
+        }
+
+        /* Automatic dark mode */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg:           #000000;
+                --card:         #1c1c1e;
+                --text:         #f5f5f7;
+                --text-light:   #a1a1a6;
+                --border:       #3a3a3c;
+                --accent:       #0a84ff;
+                --accent-dark:  #0060df;
+                --shadow:       0 8px 30px rgba(0,0,0,0.7);
+            }
+
+            body {
+                background: radial-gradient(circle at top, #1c1c1e 0, #000000 55%);
+                color: var(--text);
+            }
+
+            .table-card,
+            .welcome,
+            .not-found,
+            .instructor-select {
+                background: #1c1c1e;
+                border-color: var(--border);
+            }
+
+            .search-input {
+                background: rgba(44,44,46,0.9);
+                color: var(--text);
+                border-color: #3a3a3c;
+            }
+
+            .search-input::placeholder {
+                color: var(--text-light);
+            }
+
+            .table th,
+            .table td {
+                background: #1c1c1e;
+                border-bottom-color: #3a3a3c;
+            }
+
+            .table th {
+                background: rgba(44,44,46,0.98);
+            }
+
+            .table tbody tr:hover {
+                background: rgba(10,132,255,0.18);
+            }
+
+            .btn-reset {
+                background: #1c1c1e;
+                color: var(--text);
+                border-color: var(--border);
+            }
+
+            .btn-reset:hover {
+                background: #2c2c2e;
+            }
+
+            .btn-export {
+                background: var(--accent);
+            }
+
+            .search-bar-wrapper {
+                background: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.6));
+            }
         }
     </style>
 </head>
@@ -224,7 +428,6 @@
 
     <div class="updated">Updated: {{ updated_at }}</div>
 
-    <!-- Logo above welcome message -->
     <div class="logo-container">
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
     </div>
@@ -233,7 +436,6 @@
         {{ message | safe }}
     {% endif %}
 
-    <!-- Instructor selector -->
     <div class="instructor-select">
         <select onchange="window.location.href='/?instructor=' + encodeURIComponent(this.value)">
             <option value="" disabled {% if not instructor or instructor == "Select an Instructor" %}selected{% endif %}>
@@ -247,30 +449,44 @@
         </select>
     </div>
 
-    <!-- Search input -->
-    <div class="search-box">
-        <input type="text" id="searchInput" class="search-input" placeholder="Search table…">
+    <!-- Floating search bar wrapper (especially for mobile) -->
+    <div class="search-bar-wrapper">
+        <div class="search-box">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search table…">
+        </div>
     </div>
 
-    <!-- Table display area -->
     {% if table_html %}
     <div class="table-card">
-        {{ table_html | safe }}
+        <div class="table-wrapper">
+            {{ table_html | safe }}
+        </div>
     </div>
     {% endif %}
 
 </div>
 
 <script>
-// Live search
-document.getElementById('searchInput').addEventListener('keyup', function() {
-    const filter = this.value.toLowerCase();
-    const rows = document.querySelectorAll('.table tbody tr');
-    rows.forEach(row => {
-        row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
-    });
-});
+    // Live search
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function () {
+            const filter = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.table tbody tr');
+            rows.forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
+            });
+        });
+    }
 
-// PNG export
-document.getElementById('exportBtn').addEventListener('click', function() {
-    const el = document.querySelector('.table-card
+    // PNG export placeholder (kept to avoid JS errors; wire up html2canvas if desired)
+    const exportBtn = document.getElementById('exportBtn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function () {
+            alert('PNG export can be wired up here (e.g., with html2canvas).');
+        });
+    }
+</script>
+
+</body>
+</html>
