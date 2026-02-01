@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Danger Report{{ ' – ' + instructor if instructor and instructor != "Select an Instructor" else '' }}</title>
+    <title>Student Head Ups Report{{ ' – ' + instructor if instructor and instructor != "Select an Instructor" else '' }}</title>
 
     <style>
         :root {
@@ -16,11 +16,6 @@
             --accent-dark:  #0066cc;
             --radius:       16px;
             --shadow:       0 4px 30px rgba(0,0,0,0.08);
-            --transition:   0.2s ease;
-        }
-
-        * {
-            box-sizing: border-box;
         }
 
         body {
@@ -30,7 +25,6 @@
             margin: 0;
             padding: 40px 20px;
             line-height: 1.5;
-            -webkit-font-smoothing: antialiased;
         }
 
         .container {
@@ -52,6 +46,18 @@
             letter-spacing: -0.5px;
         }
 
+        .logo-container {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo {
+            max-width: 180px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
         .updated {
             color: var(--text-light);
             font-size: 15px;
@@ -68,7 +74,7 @@
             font-weight: 500;
             padding: 10px 20px;
             border-radius: var(--radius);
-            transition: all var(--transition);
+            transition: all 0.2s ease;
             cursor: pointer;
             border: none;
         }
@@ -108,7 +114,6 @@
             padding: 14px 18px;
             width: 100%;
             color: var(--text);
-            appearance: none;
         }
 
         .instructor-select select:focus {
@@ -128,7 +133,7 @@
             border: 1px solid var(--border);
             border-radius: var(--radius);
             background: white;
-            transition: border-color var(--transition), box-shadow var(--transition);
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
         .search-input:focus {
@@ -151,8 +156,7 @@
             font-size: 14px;
         }
 
-        .table th,
-        .table td {
+        .table th, .table td {
             padding: 14px 18px;
             text-align: left;
             border-bottom: 1px solid var(--border);
@@ -198,6 +202,7 @@
             body { padding: 24px 16px; }
             header { flex-direction: column; align-items: flex-start; gap: 20px; }
             .controls { width: 100%; flex-wrap: wrap; }
+            .logo { max-width: 140px; }
         }
     </style>
 </head>
@@ -206,7 +211,7 @@
 <div class="container">
 
     <header>
-        <h1>Danger Report{{ ' – ' + instructor if instructor and instructor != "Select an Instructor" else '' }}</h1>
+        <h1>Student Head Ups Report{{ ' – ' + instructor if instructor and instructor != "Select an Instructor" else '' }}</h1>
         <div class="controls">
             <button class="btn btn-reset" onclick="window.location.href='/'">
                 ← Back / Reset
@@ -218,6 +223,11 @@
     </header>
 
     <div class="updated">Updated: {{ updated_at }}</div>
+
+    <!-- Logo above welcome message -->
+    <div class="logo-container">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
+    </div>
 
     {% if message %}
         {{ message | safe }}
@@ -252,7 +262,7 @@
 </div>
 
 <script>
-// Live search filter
+// Live search
 document.getElementById('searchInput').addEventListener('keyup', function() {
     const filter = this.value.toLowerCase();
     const rows = document.querySelectorAll('.table tbody tr');
@@ -261,28 +271,6 @@ document.getElementById('searchInput').addEventListener('keyup', function() {
     });
 });
 
-// Export table card as PNG
+// PNG export
 document.getElementById('exportBtn').addEventListener('click', function() {
-    const el = document.querySelector('.table-card') || document.querySelector('.container');
-    if (!el) return alert('Nothing to export');
-
-    html2canvas(el, {
-        scale: 2,
-        backgroundColor: null,
-        logging: false
-    }).then(canvas => {
-        const a = document.createElement('a');
-        a.download = `Danger-Report_${'{{ instructor }}'.replace(/\s+/g, '_') || 'Overview'}.png`;
-        a.href = canvas.toDataURL('image/png');
-        a.click();
-    }).catch(err => {
-        console.error(err);
-        alert('Export failed');
-    });
-});
-</script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-</body>
-</html>
+    const el = document.querySelector('.table-card

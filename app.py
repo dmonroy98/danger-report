@@ -16,29 +16,31 @@ excel_files = glob.glob(os.path.join(DATA_DIR, '*.xls*'))
 if not excel_files:
     EXCEL_PATH = None
     INSTRUCTORS = ["No Excel file found in /data"]
-    print("ERROR: No Excel file found")
+    print("ERROR: No Excel file (*.xls*, *.xlsx, *.xlsm, etc.) found in data/ folder")
 else:
     excel_files.sort(key=lambda f: (not f.lower().endswith(('.xlsx', '.xlsm')), f))
     EXCEL_PATH = excel_files[0]
     print(f"Using Excel file: {EXCEL_PATH}")
     try:
         excel_file = pd.ExcelFile(EXCEL_PATH)
-        INSTRUCTORS = excel_file.sheet_names
-        print(f"Loaded {len(INSTRUCTORS)} sheets: {INSTRUCTORS}")
+        raw_sheets = excel_file.sheet_names
+        # Skip first sheet in selectable list (and block it everywhere)
+        INSTRUCTORS = raw_sheets[1:] if len(raw_sheets) > 1 else raw_sheets
+        print(f"Loaded {len(INSTRUCTORS)} selectable sheets (first skipped): {INSTRUCTORS}")
     except Exception as e:
-        print(f"ERROR loading Excel: {e}")
-        INSTRUCTORS = ["Excel read failed"]
+        print(f"ERROR loading Excel file {EXCEL_PATH}: {e}")
+        INSTRUCTORS = ["Excel file found but cannot be read"]
         EXCEL_PATH = None
 
 # ─── Day ordering ───────────────────────────────────────────────────────────────
 DAY_ORDER = {
-    'M': 0, 'MO': 0,
-    'TU': 1, 'T': 1,
-    'W': 2, 'WE': 2,
-    'TH': 3, 'R': 3,
-    'F': 4,
-    'SA': 5, 'S': 5,
-    'SU': 6,
+    'M':   0, 'MO':  0,
+    'TU':  1, 'T':   1,
+    'W':   2, 'WE':  2,
+    'TH':  3, 'R':   3,
+    'F':   4,
+    'SA':  5, 'S':   5,
+    'SU':  6,
 }
 
 def extract_day_code(class_name):
@@ -46,17 +48,18 @@ def extract_day_code(class_name):
         return 99
     match = re.search(r'\s*([A-Z]{1,2})$', str(class_name).strip().upper())
     if match:
-        return DAY_ORDER.get(match.group(1), 99)
+        code = match.group(1)
+        return DAY_ORDER.get(code, 99)
     return 99
 
 # ─── Table generation ───────────────────────────────────────────────────────────
 def get_table_html(instructor):
     if EXCEL_PATH is None:
-        return '<p style="color:red; padding:20px;">No Excel file available.</p>'
+        return '<p style="color: red; font-weight: bold; padding: 20px;">No valid Excel file available in /data folder.</p>'
 
     try:
         if instructor not in INSTRUCTORS:
-            return f'<p style="color:red; padding:20px;">Sheet "{instructor}" not found.</p>'
+            return f'<p style="color: red;">Sheet "{instructor}" not found in Excel.</p>'
 
         print(f"[DEBUG] Loading sheet: '{instructor}'")
 
@@ -65,32 +68,39 @@ def get_table_html(instructor):
 
         df.columns = df.columns.str.strip().str.replace(r'\s+', ' ', regex=True)
 
-        # ─── Sorting ────────────────────────────────────────────────────────────
+        # Extract numeric ID from first column (e.g. "5 | Name")
+        first_col = df.columns[0] if len(df.columns) > 0 else None
+        if first_col:
+            def extract_id(val):
+                if pd.isna(val):
+                    return 999999
+                str_val = str(val).strip()
+                if ' | ' in str_val:
+                    parts = str_val.split(' | ', 1)
+                    try:
+                        return int(parts[0].strip())
+                    except ValueError:
+                        return 999999
+                return 999999
+
+            df['sort_id'] = df[first_col].apply(extract_id)
+
+        # Build sorting keys
         sort_keys = []
         ascending_flags = []
 
-        # Day-based sort (primary)
+        if 'sort_id' in df.columns:
+            sort_keys.append('sort_id')
+            ascending_flags.append(True)
+
         if 'Class Name' in df.columns:
             df['sort_day'] = df['Class Name'].apply(extract_day_code)
             sort_keys.append('sort_day')
             ascending_flags.append(True)
 
-        # First column numeric sort if it looks like a count/number
-        first_col = df.columns[0] if len(df.columns) > 0 else None
-        if first_col and first_col.lower() in ['count', '#', 'students', 'enrolled', 'incidents', 'number', 'rank']:
-            try:
-                df['sort_first'] = pd.to_numeric(df[first_col], errors='coerce')
-                sort_keys.append('sort_first')
-                ascending_flags.append(True)  # change to False if you want descending
-            except:
-                pass  # keep as string if conversion fails
-
-        # Class Name alphabetical (secondary)
-        if 'Class Name' in df.columns:
             sort_keys.append('Class Name')
             ascending_flags.append(True)
 
-        # Date descending (if present)
         if 'Date' in df.columns:
             try:
                 df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
@@ -103,30 +113,30 @@ def get_table_html(instructor):
             print(f"[DEBUG] Sorting by {sort_keys} asc={ascending_flags}")
             df = df.sort_values(by=sort_keys, ascending=ascending_flags)
 
-        # Clean temp columns
-        for col in ['sort_day', 'sort_first']:
+        for col in ['sort_id', 'sort_day']:
             if col in df.columns:
-                df = df.drop(columns=[col])
+                df = df.drop(columns=[col], errors='ignore')
 
-        # ─── Row colors (muted Apple palette) ──────────────────────────────────
+        # Very minimal Apple-like palette
         def row_background(row):
             day_num = extract_day_code(row.get('Class Name', pd.NA))
             colors = {
-                0: '#f0f5ff',  # Monday
-                1: '#fff4f0',  # Tuesday
-                2: '#f0fff4',  # Wednesday
-                3: '#fffaf0',  # Thursday
-                4: '#f8f0ff',  # Friday
-                5: '#f5f9ff',  # Saturday
-                6: '#fdfdfd',  # Sunday
-                99: '#f8f8f8'  # Unknown
+                0: '#f5f5f7',   # Monday
+                1: '#f8f8f8',   # Tuesday
+                2: '#f6f8fa',   # Wednesday
+                3: '#fdfdfd',   # Thursday
+                4: '#f9f9fb',   # Friday
+                5: '#f5f9ff',   # Saturday
+                6: '#ffffff',   # Sunday
+                99: '#f8f8f8'   # Unknown
             }
-            return [f'background-color: {colors.get(day_num, "#ffffff")}'] * len(row)
+            bg_color = colors.get(day_num, '#ffffff')
+            return [f'background-color: {bg_color}'] * len(row)
 
         styled = df.style.apply(row_background, axis=1)
         styled = styled.set_properties(**{'text-align': 'left'})
 
-        return styled.to_html(
+        table_html = styled.to_html(
             escape=False,
             index=False,
             classes="table table-striped table-bordered table-hover",
@@ -134,8 +144,75 @@ def get_table_html(instructor):
             justify="left"
         )
 
+        return table_html
+
     except Exception as e:
         traceback.print_exc()
-        msg = f'<p style="color:red; padding:20px;">Error loading "{instructor}": {str(e)}</p>'
+        error_msg = f'<p style="color: red; font-weight: bold; padding: 20px;">Error loading data for {instructor}: {str(e)}</p>'
         if 'df' in locals():
-            msg += f'<p>Columns: {", ".join(df.columns.tolist())}</p
+            error_msg += f'<p>Available columns: {", ".join(df.columns.tolist())}</p>'
+        return error_msg
+
+# ─── Route – very strict, never auto-loads first sheet ──────────────────────────
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def danger_report(path=''):
+    instructor_param = request.args.get('instructor', '').strip()
+
+    print(f"[DEBUG] Requested: /{path} ?instructor='{instructor_param}'")
+
+    instructor = None
+    table_html = None
+    message = None
+
+    # Only allow valid, non-first-sheet instructors
+    if instructor_param and instructor_param in INSTRUCTORS:
+        # Extra strict: block first sheet even if requested directly
+        if len(INSTRUCTORS) > 0 and instructor_param == INSTRUCTORS[0]:
+            message = (
+                '<div style="text-align:center; padding:32px; background:#fff5f5; '
+                'border-radius:12px; margin:32px auto; max-width:600px; border:1px solid #ffcccc;">'
+                '<h3 style="color:#c41e3a; margin-bottom:16px;">Restricted</h3>'
+                '<p>The first sheet is not available for viewing.</p>'
+                '<p style="color:#555;">Please select another instructor from the dropdown.</p>'
+                '</div>'
+            )
+        else:
+            instructor = instructor_param
+            table_html = get_table_html(instructor)
+    else:
+        if instructor_param:
+            print(f"[WARN] '{instructor_param}' not found or invalid")
+            message = (
+                '<div style="text-align:center; padding:32px; background:#fff5f5; '
+                'border-radius:12px; margin:32px auto; max-width:600px; border:1px solid #ffcccc;">'
+                '<h3 style="color:#c41e3a; margin-bottom:16px;">Not found</h3>'
+                f'<p>"{instructor_param}" does not match any available sheet.</p>'
+                '<p style="color:#555;">Please select from the dropdown.</p>'
+                '</div>'
+            )
+        else:
+            message = (
+                '<div style="text-align:center; padding:60px 24px; background:#f9f9f9; '
+                'border-radius:18px; margin:48px auto; max-width:720px; '
+                'box-shadow:0 4px 12px rgba(0,0,0,0.06);">'
+                '<h2 style="margin-bottom:20px; font-size:28px;">Danger Report</h2>'
+                '<p style="font-size:17px; color:#444; max-width:580px; margin:0 auto 28px;">'
+                'Select an instructor from the dropdown menu above to view their data.'
+                '</p>'
+                '</div>'
+            )
+
+    updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    return render_template(
+        'danger_report.html',
+        instructor=instructor or "Select an Instructor",
+        instructors=INSTRUCTORS,
+        table_html=table_html,
+        updated_at=updated_at,
+        message=message or ""
+    )
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5000)
