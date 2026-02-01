@@ -1,63 +1,154 @@
-<!-- templates/danger_report.html (updated with search box, back button, and JS) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Danger Report</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Danger Report – {{ instructor }}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    
     <style>
-        body { padding: 20px; }
-        .table-container { margin-top: 20px; }
-        #searchInput { max-width: 300px; }
+        body {
+            background-color: #f8f9fa;
+            color: #212529;
+            padding: 2rem 1rem;
+        }
+        .container {
+            max-width: 1400px;
+        }
+        .header {
+            margin-bottom: 1.5rem;
+        }
+        .search-box {
+            max-width: 400px;
+            margin-bottom: 1.5rem;
+        }
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        .table {
+            margin-bottom: 0;
+        }
+        .table th {
+            background-color: #f1f3f5;
+            font-weight: 600;
+        }
+
+        /* Day-based row colors (light pastel tones) */
+        .table tbody tr.day-row-monday    { background-color: #e6f3ff !important; }   /* light blue    - Monday */
+        .table tbody tr.day-row-tuesday   { background-color: #fff0e6 !important; }   /* light peach   - Tuesday */
+        .table tbody tr.day-row-wednesday { background-color: #f0fff0 !important; }   /* light green   - Wednesday */
+        .table tbody tr.day-row-thursday  { background-color: #fff5e6 !important; }   /* light orange  - Thursday */
+        .table tbody tr.day-row-friday    { background-color: #f8e6ff !important; }   /* light purple  - Friday */
+        .table tbody tr.day-row-saturday  { background-color: #f0f8ff !important; }   /* light cyan    - Saturday */
+        .table tbody tr.day-row-sunday    { background-color: #fffafa !important; }   /* almost white  - Sunday */
+        .table tbody tr.day-row-unknown   { background-color: #f5f5f5 !important; }   /* light gray    - Unknown */
+
+        /* Hover effect for better readability */
+        .table tbody tr:hover {
+            filter: brightness(95%);
+            transition: filter 0.2s;
+        }
+
+        .btn-export {
+            min-width: 140px;
+        }
     </style>
 </head>
-<body class="container">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>Danger Report – {{ instructor }}</h1>
-        <a href="/" class="btn btn-secondary">Back / Reset</a>
-    </div>
-    <p class="text-muted">Updated: {{ updated_at }}</p>
-
-    <form method="GET" class="mb-4">
-        <div class="input-group w-50">
-            <label class="input-group-text" for="instructor">Instructor:</label>
-            <select class="form-select" name="instructor" id="instructor" onchange="this.form.submit()">
-                {% for inst in instructors %}
-                    <option value="{{ inst }}" {% if inst == instructor %}selected{% endif %}>
-                        {{ inst }}
-                    </option>
-                {% endfor %}
-            </select>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center header">
+            <h1 class="mb-0">Danger Report – {{ instructor }}</h1>
+            <div>
+                <a href="/" class="btn btn-outline-secondary me-2">Back / Reset</a>
+                <button id="exportBtn" class="btn btn-primary btn-export">Export as PNG</button>
+            </div>
         </div>
-    </form>
 
-    <!-- Search box -->
-    <div class="mb-3">
-        <input type="text" id="searchInput" class="form-control" placeholder="Search table (e.g., class name, date, location)...">
+        <!-- Last updated -->
+        <p class="text-muted mb-4">Updated: {{ updated_at }}</p>
+
+        <!-- Instructor selector -->
+        <form method="GET" class="mb-4">
+            <div class="input-group" style="max-width: 400px;">
+                <span class="input-group-text">Instructor</span>
+                <select name="instructor" class="form-select" onchange="this.form.submit()">
+                    {% for inst in instructors %}
+                        <option value="{{ inst }}" {% if inst == instructor %}selected{% endif %}>
+                            {{ inst }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+
+        <!-- Search input -->
+        <div class="search-box">
+            <input type="text" id="searchInput" class="form-control" placeholder="Search table (name, date, location, etc.)...">
+        </div>
+
+        <!-- Table -->
+        <div class="table-container">
+            {{ table_html | safe }}
+        </div>
+
+        <!-- No data fallback -->
+        {% if not table_html or 'Error' in table_html %}
+        <div class="alert alert-info mt-4">
+            No data available for this instructor or an error occurred while loading.
+        </div>
+        {% endif %}
     </div>
 
-    <div class="table-container">
-        {{ table_html | safe }}
-    </div>
-
-    {% if table_html and 'Error' not in table_html %}
-    <button id="exportBtn" class="btn btn-primary mt-3">Export as PNG</button>
-    {% endif %}
-
+    <!-- JavaScript -->
     <script>
-        // Client-side search filter
+        // Real-time search filter
         document.getElementById('searchInput').addEventListener('keyup', function() {
             const filter = this.value.toLowerCase();
-            const rows = document.querySelectorAll('.table tbody tr');
+            const table = document.querySelector('.table');
+            if (!table) return;
+
+            const rows = table.querySelectorAll('tbody tr');
             rows.forEach(row => {
                 const text = row.textContent.toLowerCase();
                 row.style.display = text.includes(filter) ? '' : 'none';
             });
         });
+
+        // Export table as PNG using html2canvas
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            const element = document.querySelector('.table-container');
+            if (!element) {
+                alert('No table found to export');
+                return;
+            }
+
+            html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Danger-Report-${'{{ instructor }}'.replace(/ /g, '-')}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }).catch(err => {
+                console.error('Export failed:', err);
+                alert('Failed to export image. Please try again.');
+            });
+        });
     </script>
 
+    <!-- Load html2canvas library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <!-- Bootstrap JS (optional - for dropdowns, etc.) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Add your PNG export JS here if needed (e.g., html2canvas) -->
 </body>
 </html>

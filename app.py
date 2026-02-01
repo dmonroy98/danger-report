@@ -31,28 +31,41 @@ else:
         INSTRUCTORS = ["Excel file found but cannot be read"]
         EXCEL_PATH = None
 
-# ─── Custom day code extraction for sorting ─────────────────────────────────────
+# ─── Day ordering and class mapping ─────────────────────────────────────────────
 DAY_ORDER = {
-    'M': 0, 'MO': 0,
-    'TU': 1, 'T': 1,
-    'W': 2,
-    'TH': 3, 'R': 3,
-    'F': 4,
-    'SA': 5, 'S': 5,
-    'SU': 6,
+    'M':   0, 'MO':  0,     # Monday
+    'TU':  1, 'T':   1,     # Tuesday
+    'W':   2, 'WE':  2,     # Wednesday
+    'TH':  3, 'R':   3,     # Thursday
+    'F':   4,               # Friday
+    'SA':  5, 'S':   5,     # Saturday
+    'SU':  6,               # Sunday
+}
+
+DAY_CLASSES = {
+    0: 'monday',
+    1: 'tuesday',
+    2: 'wednesday',
+    3: 'thursday',
+    4: 'friday',
+    5: 'saturday',
+    6: 'sunday',
+    99: 'unknown'
 }
 
 def extract_day_code(class_name):
     if pd.isna(class_name):
         return 99
-    # Look for 1-2 uppercase letters at the very end (after optional space)
     match = re.search(r'\s*([A-Z]{1,2})$', str(class_name).strip().upper())
     if match:
         code = match.group(1)
         return DAY_ORDER.get(code, 99)
     return 99
 
-# ─── Generate table HTML with safe sorting ──────────────────────────────────────
+def get_day_class(day_num):
+    return f"day-row-{DAY_CLASSES.get(day_num, 'unknown')}"
+
+# ─── Generate table HTML ────────────────────────────────────────────────────────
 def get_table_html(instructor):
     if EXCEL_PATH is None:
         return '<p style="color: red; font-weight: bold; padding: 20px;">No valid Excel file available in /data folder.</p>'
@@ -66,35 +79,41 @@ def get_table_html(instructor):
         df = pd.read_excel(EXCEL_PATH, sheet_name=instructor, engine='openpyxl')
         df = df.fillna('')
 
-        # Normalize column names (remove extra spaces, make consistent)
+        # Normalize column names
         df.columns = df.columns.str.strip().str.replace(r'\s+', ' ', regex=True)
 
-        # Build sort columns and ascending dynamically
+        # Sorting & row class preparation
         sort_cols = []
         ascending = []
 
         if 'Class Name' in df.columns:
             df['sort_day'] = df['Class Name'].apply(extract_day_code)
+            df['row_class'] = df['sort_day'].apply(get_day_class)
+
+            # Sort: Monday (0) → Sunday (6), then Class Name alphabetical, then Date newest first
             sort_cols.append('sort_day')
-            ascending.append(True)   # earliest day first
+            ascending.append(True)   # low number (Monday) first
 
             sort_cols.append('Class Name')
-            ascending.append(True)   # alphabetical within day
+            ascending.append(True)
 
-        if 'Date' in df.columns:
-            try:
-                df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
-                sort_cols.append('Date')
-                ascending.append(False)  # newest first
-            except Exception as date_err:
-                print(f"Date parsing failed for {instructor}: {date_err}")
+            if 'Date' in df.columns:
+                try:
+                    df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+                    sort_cols.append('Date')
+                    ascending.append(False)  # newest first
+                except Exception as date_err:
+                    print(f"Date parsing failed for {instructor}: {date_err}")
 
-        if sort_cols:
             print(f"[DEBUG] Sorting by: {sort_cols} ascending: {ascending}")
             df = df.sort_values(by=sort_cols, ascending=ascending)
-            if 'sort_day' in df.columns:
-                df = df.drop(columns=['sort_day'], errors='ignore')
+            df = df.drop(columns=['sort_day'], errors='ignore')
 
+        else:
+            df['row_class'] = 'day-row-unknown'
+            print(f"Warning: No 'Class Name' column → no day sorting/coloring for {instructor}")
+
+        # Generate HTML table
         table_html = df.to_html(
             index=False,
             classes="table table-striped table-bordered table-hover",
@@ -102,6 +121,18 @@ def get_table_html(instructor):
             justify="left",
             escape=False
         )
+
+        # Post-process: move row_class from first <td> to <tr> (hack for pandas to_html limitation)
+        table_html = re.sub(
+            r'<tr>\s*<td>(day-row-[a-z-]+)</td>',
+            r'<tr class="\1">',
+            table_html,
+            flags=re.IGNORECASE
+        )
+        # Remove the temp row_class column from header and body
+        table_html = re.sub(r'<th>row_class</th>\s*', '', table_html)
+        table_html = re.sub(r'<td>day-row-[a-z-]+</td>\s*', '', table_html, flags=re.IGNORECASE)
+
         return table_html
 
     except Exception as e:
@@ -111,19 +142,19 @@ def get_table_html(instructor):
             error_msg += f'<p>Available columns: {", ".join(df.columns.tolist())}</p>'
         return error_msg
 
-# ─── Unified route for / and /danger-report ─────────────────────────────────────
+# ─── Unified route ──────────────────────────────────────────────────────────────
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def danger_report(path=''):
     instructor_param = request.args.get('instructor', '').strip()
 
-    print(f"[DEBUG] Requested path: /{path}, instructor param: '{instructor_param}'")
+    print(f"[DEBUG] Requested: /{path} ?instructor='{instructor_param}'")
 
     instructor = instructor_param
 
     if not instructor or instructor not in INSTRUCTORS:
         if instructor_param:
-            print(f"[WARN] Instructor '{instructor_param}' not found in sheets")
+            print(f"[WARN] '{instructor_param}' not found in sheets")
         instructor = INSTRUCTORS[0] if INSTRUCTORS and INSTRUCTORS[0] not in [
             "No Excel file found in /data",
             "Excel file found but cannot be read"
