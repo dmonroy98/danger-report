@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Heads Up Report{{ ' – ' + instructor if instructor and instructor != "Select an Instructor" else '' }}</title>
 
+    <!-- html2canvas for PNG export -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
     <style>
         :root {
             --bg:           #f5f5f7;
@@ -47,21 +50,6 @@
             font-weight: 600;
             margin: 0;
             letter-spacing: -0.5px;
-        }
-
-        .logo-container {
-            text-align: center;
-            margin-bottom: 24px;
-        }
-
-        .logo {
-            max-width: 180px;
-            height: auto;
-            display: block;
-            margin: 0 auto;
-            opacity: 0;
-            transform: translateY(6px);
-            animation: fadeInUp 0.45s ease-out 0.05s forwards;
         }
 
         .updated {
@@ -156,14 +144,6 @@
             overflow: hidden;
         }
 
-/* Force wrapping even when pandas injects nowrap */
-table.dataframe td,
-table.dataframe th {
-    white-space: normal !important;
-    word-break: break-word;
-}
-
-
         .table-wrapper {
             position: relative;
             max-height: 70vh;
@@ -203,7 +183,7 @@ table.dataframe th {
             opacity: 1;
         }
 
-        /* Table responsiveness fix */
+        /* Base table */
         .table {
             width: 100%;
             table-layout: auto;
@@ -215,8 +195,15 @@ table.dataframe th {
             text-align: left;
             border-bottom: 1px solid var(--border);
             background: var(--card);
-            white-space: normal !important;
+            white-space: normal;
             word-break: break-word;
+        }
+
+        /* Strong override for pandas inline nowrap on desktop */
+        table.dataframe.table.table-striped.table-bordered.table-hover td,
+        table.dataframe.table.table-striped.table-bordered.table-hover th {
+            white-space: normal !important;
+            word-break: break-word !important;
         }
 
         .table th {
@@ -301,6 +288,28 @@ table.dataframe th {
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Export area styling (for PNG) */
+        #exportArea {
+            padding: 32px;
+            background: #ffffff;
+        }
+
+        .export-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .export-title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .export-sub {
+            font-size: 15px;
+            color: #555;
+        }
+
         /* Mobile */
         @media (max-width: 768px) {
             body { padding: 20px 12px; }
@@ -377,6 +386,11 @@ table.dataframe th {
                 color: var(--text);
                 border-color: #3a3a3c;
             }
+
+            #exportArea {
+                background: #ffffff; /* keep export white even in dark mode */
+                color: #000000;
+            }
         }
     </style>
 </head>
@@ -390,16 +404,12 @@ table.dataframe th {
     <header>
         <h1>Student Heads Up Report{{ ' – ' + instructor if instructor and instructor != "Select an Instructor" else '' }}</h1>
         <div class="controls">
-            <button class="btn btn-reset" onclick="window.location.href='/'">← Back / Reset</button>
+            <button class="btn btn-reset" onclick="window.location.href='/'">← Back</button>
             <button id="exportBtn" class="btn btn-export">Export as PNG</button>
         </div>
     </header>
 
     <div class="updated">Updated: {{ updated_at }}</div>
-
-    <div class="logo-container">
-        <img src="{{ url_for('static', filename='logo.png') }}" class="logo">
-    </div>
 
     {% if message %}
         {{ message | safe }}
@@ -421,15 +431,27 @@ table.dataframe th {
     </div>
 
     {% if table_html %}
-    <div class="table-card">
-        <div class="table-wrapper">
-            {{ table_html | safe }}
+    <!-- Export area: header + table -->
+    <div id="exportArea">
+        <div class="export-header">
+            <div class="export-title">Student Heads Up Report</div>
+            <div class="export-sub" id="exportInstructorLine">
+                Instructor: {{ instructor if instructor and instructor != "Select an Instructor" else "N/A" }}
+            </div>
+            <div class="export-sub" id="exportTimestampLine">
+                Exported:
+            </div>
         </div>
+
+        <div class="table-card">
+            <div class="table-wrapper">
+                {{ table_html | safe }}
+            </div>
+        </div>
+
+        <div id="tableFooter" class="table-footer" data-instructor="{{ instructor }}"></div>
+        <div id="noResults" class="no-results" style="display:none;">No matches found.</div>
     </div>
-
-    <div id="tableFooter" class="table-footer" data-instructor="{{ instructor }}"></div>
-
-    <div id="noResults" class="no-results" style="display:none;">No matches found.</div>
     {% endif %}
 
 </div>
@@ -441,7 +463,7 @@ table.dataframe th {
         const footer = document.getElementById('tableFooter');
         const noResults = document.getElementById('noResults');
 
-        if (!table) return;
+        if (!table || !wrapper || !footer) return;
 
         const tbody = table.tBodies[0];
 
@@ -477,10 +499,19 @@ table.dataframe th {
             rows.sort((a, b) => {
                 const A = getCellValue(a, index);
                 const B = getCellValue(b, index);
-                return A < B ? -1 * multiplier : A > B ? 1 * multiplier : 0;
+                if (A < B) return -1 * multiplier;
+                if (A > B) return 1 * multiplier;
+                return 0;
             });
 
             sortState[index] = current === 'asc' ? 'desc' : 'asc';
+
+            document.querySelectorAll('th').forEach((th, i) => {
+                th.classList.remove('sorted-asc', 'sorted-desc');
+                if (i === index) {
+                    th.classList.add(sortState[index] === 'asc' ? 'sorted-asc' : 'sorted-desc');
+                }
+            });
 
             rows.forEach(r => tbody.appendChild(r));
             updateFooter();
@@ -491,26 +522,94 @@ table.dataframe th {
             th.addEventListener('click', () => sortTableByColumn(i));
         });
 
-        document.getElementById('searchInput').addEventListener('keyup', function () {
-            const filter = this.value.toLowerCase();
-            let visible = 0;
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function () {
+                const filter = this.value.toLowerCase();
+                let visible = 0;
 
-            Array.from(tbody.rows).forEach(row => {
-                const match = row.textContent.toLowerCase().includes(filter);
-                row.style.display = match ? '' : 'none';
-                if (match) visible++;
+                Array.from(tbody.rows).forEach(row => {
+                    const match = row.textContent.toLowerCase().includes(filter);
+                    row.style.display = match ? '' : 'none';
+                    if (match) visible++;
+                });
+
+                noResults.style.display = visible === 0 ? 'block' : 'none';
+                updateFooter();
             });
-
-            noResults.style.display = visible === 0 ? 'block' : 'none';
-            updateFooter();
-        });
+        }
 
         updateFooter();
     }
 
+    function getCentralTimeString() {
+        const now = new Date();
+        return now.toLocaleString("en-US", {
+            timeZone: "America/Chicago",
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit"
+        });
+    }
+
+    function initExport() {
+        const exportBtn = document.getElementById('exportBtn');
+        const exportArea = document.getElementById('exportArea');
+        if (!exportBtn || !exportArea) return;
+
+        exportBtn.addEventListener('click', function () {
+            const header = document.querySelector('header');
+            const controls = document.querySelector('.controls');
+            const searchBar = document.querySelector('.search-bar-wrapper');
+            const instructorSelect = document.querySelector('.instructor-select');
+            const shimmer = document.getElementById('shimmerOverlay');
+
+            const exportTimestampLine = document.getElementById('exportTimestampLine');
+            if (exportTimestampLine) {
+                exportTimestampLine.textContent = "Exported: " + getCentralTimeString();
+            }
+
+            const toHide = [header, controls, searchBar, instructorSelect, shimmer].filter(Boolean);
+            toHide.forEach(el => el.style.visibility = 'hidden');
+
+            const originalBackground = document.body.style.background;
+            document.body.style.background = '#ffffff';
+
+            html2canvas(exportArea, {
+                scale: 2,
+                useCORS: true,
+                scrollX: 0,
+                scrollY: -window.scrollY,
+                windowWidth: document.documentElement.offsetWidth,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
+                canvas.toBlob(function (blob) {
+                    const link = document.createElement("a");
+                    const instructor = exportArea.getAttribute('data-instructor') || '';
+                    const safeInstructor = instructor.replace(/[^a-z0-9]+/gi, '_') || 'report';
+                    const filename = safeInstructor + "_heads_up_report.png";
+
+                    link.download = filename;
+                    link.href = URL.createObjectURL(blob);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
+
+            }).finally(() => {
+                toHide.forEach(el => el.style.visibility = '';
+                document.body.style.background = originalBackground;
+            });
+        });
+    }
+
     window.addEventListener('load', () => {
-        document.getElementById('shimmerOverlay').style.display = 'none';
+        const shimmer = document.getElementById('shimmerOverlay');
+        if (shimmer) shimmer.style.display = 'none';
         initTableFeatures();
+        initExport();
     });
 </script>
 
