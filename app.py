@@ -31,7 +31,7 @@ else:
         INSTRUCTORS = ["Excel file found but cannot be read"]
         EXCEL_PATH = None
 
-# ─── Day ordering and class mapping ─────────────────────────────────────────────
+# ─── Day ordering ───────────────────────────────────────────────────────────────
 DAY_ORDER = {
     'M':   0, 'MO':  0,     # Monday
     'TU':  1, 'T':   1,     # Tuesday
@@ -40,17 +40,6 @@ DAY_ORDER = {
     'F':   4,               # Friday
     'SA':  5, 'S':   5,     # Saturday
     'SU':  6,               # Sunday
-}
-
-DAY_CLASSES = {
-    0: 'monday',
-    1: 'tuesday',
-    2: 'wednesday',
-    3: 'thursday',
-    4: 'friday',
-    5: 'saturday',
-    6: 'sunday',
-    99: 'unknown'
 }
 
 def extract_day_code(class_name):
@@ -62,10 +51,7 @@ def extract_day_code(class_name):
         return DAY_ORDER.get(code, 99)
     return 99
 
-def get_day_class(day_num):
-    return f"day-row-{DAY_CLASSES.get(day_num, 'unknown')}"
-
-# ─── Generate table HTML ────────────────────────────────────────────────────────
+# ─── Generate table HTML with inline row colors ─────────────────────────────────
 def get_table_html(instructor):
     if EXCEL_PATH is None:
         return '<p style="color: red; font-weight: bold; padding: 20px;">No valid Excel file available in /data folder.</p>'
@@ -82,17 +68,15 @@ def get_table_html(instructor):
         # Normalize column names
         df.columns = df.columns.str.strip().str.replace(r'\s+', ' ', regex=True)
 
-        # Sorting & row class preparation
+        # Build sort columns dynamically
         sort_cols = []
         ascending = []
 
         if 'Class Name' in df.columns:
             df['sort_day'] = df['Class Name'].apply(extract_day_code)
-            df['row_class'] = df['sort_day'].apply(get_day_class)
 
-            # Sort: Monday (0) → Sunday (6), then Class Name alphabetical, then Date newest first
             sort_cols.append('sort_day')
-            ascending.append(True)   # low number (Monday) first
+            ascending.append(True)   # Monday (0) first
 
             sort_cols.append('Class Name')
             ascending.append(True)
@@ -110,28 +94,35 @@ def get_table_html(instructor):
             df = df.drop(columns=['sort_day'], errors='ignore')
 
         else:
-            df['row_class'] = 'day-row-unknown'
-            print(f"Warning: No 'Class Name' column → no day sorting/coloring for {instructor}")
+            print(f"Warning: No 'Class Name' column → no day sorting for {instructor}")
 
-        # Generate HTML table
-        table_html = df.to_html(
+        # ─── Inline row colors using Styler ─────────────────────────────────────
+        def row_background(row):
+            day_num = extract_day_code(row.get('Class Name', pd.NA))
+            colors = {
+                0: '#e6f3ff',   # monday    light blue
+                1: '#fff0e6',   # tuesday   light peach
+                2: '#f0fff0',   # wednesday light green
+                3: '#fff5e6',   # thursday  light orange
+                4: '#f8e6ff',   # friday    light lavender
+                5: '#f0f8ff',   # saturday  light cyan
+                6: '#fffafa',   # sunday    almost white
+                99: '#f5f5f5'   # unknown   light gray
+            }
+            bg_color = colors.get(day_num, '#ffffff')
+            return [f'background-color: {bg_color}'] * len(row)
+
+        # Apply styling
+        styled = df.style.apply(row_background, axis=1)
+        styled = styled.set_table_classes("table table-striped table-bordered table-hover")
+        styled = styled.set_properties(**{'text-align': 'left'})
+
+        table_html = styled.to_html(
+            escape=False,
             index=False,
-            classes="table table-striped table-bordered table-hover",
             border=0,
-            justify="left",
-            escape=False
+            justify="left"
         )
-
-        # Post-process: move row_class from first <td> to <tr> (hack for pandas to_html limitation)
-        table_html = re.sub(
-            r'<tr>\s*<td>(day-row-[a-z-]+)</td>',
-            r'<tr class="\1">',
-            table_html,
-            flags=re.IGNORECASE
-        )
-        # Remove the temp row_class column from header and body
-        table_html = re.sub(r'<th>row_class</th>\s*', '', table_html)
-        table_html = re.sub(r'<td>day-row-[a-z-]+</td>\s*', '', table_html, flags=re.IGNORECASE)
 
         return table_html
 
