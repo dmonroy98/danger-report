@@ -23,10 +23,8 @@ else:
     print(f"Using Excel file: {EXCEL_PATH}")
     try:
         excel_file = pd.ExcelFile(EXCEL_PATH)
-        raw_sheets = excel_file.sheet_names
-        # Skip first sheet in selectable list (and block it everywhere)
-        INSTRUCTORS = raw_sheets[1:] if len(raw_sheets) > 1 else raw_sheets
-        print(f"Loaded {len(INSTRUCTORS)} selectable sheets (first skipped): {INSTRUCTORS}")
+        INSTRUCTORS = excel_file.sheet_names  # all sheets included
+        print(f"Successfully loaded {len(INSTRUCTORS)} instructors/sheets: {INSTRUCTORS}")
     except Exception as e:
         print(f"ERROR loading Excel file {EXCEL_PATH}: {e}")
         INSTRUCTORS = ["Excel file found but cannot be read"]
@@ -59,7 +57,7 @@ def get_table_html(instructor):
 
     try:
         if instructor not in INSTRUCTORS:
-            return f'<p style="color: red;">Sheet "{instructor}" not found in Excel.</p>'
+            return f'<p style="color: red;">Sheet for "{instructor}" not found in Excel.</p>'
 
         print(f"[DEBUG] Loading sheet: '{instructor}'")
 
@@ -117,7 +115,7 @@ def get_table_html(instructor):
             if col in df.columns:
                 df = df.drop(columns=[col], errors='ignore')
 
-        # Very minimal Apple-like palette
+        # Minimal Apple-like palette
         def row_background(row):
             day_num = extract_day_code(row.get('Class Name', pd.NA))
             colors = {
@@ -153,7 +151,7 @@ def get_table_html(instructor):
             error_msg += f'<p>Available columns: {", ".join(df.columns.tolist())}</p>'
         return error_msg
 
-# ─── Route – very strict, never auto-loads first sheet ──────────────────────────
+# ─── Route – no auto-load of first sheet, but direct links work ─────────────────
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def danger_report(path=''):
@@ -165,29 +163,17 @@ def danger_report(path=''):
     table_html = None
     message = None
 
-    # Only allow valid, non-first-sheet instructors
     if instructor_param and instructor_param in INSTRUCTORS:
-        # Extra strict: block first sheet even if requested directly
-        if len(INSTRUCTORS) > 0 and instructor_param == INSTRUCTORS[0]:
-            message = (
-                '<div style="text-align:center; padding:32px; background:#fff5f5; '
-                'border-radius:12px; margin:32px auto; max-width:600px; border:1px solid #ffcccc;">'
-                '<h3 style="color:#c41e3a; margin-bottom:16px;">Restricted</h3>'
-                '<p>The first sheet is not available for viewing.</p>'
-                '<p style="color:#555;">Please select another instructor from the dropdown.</p>'
-                '</div>'
-            )
-        else:
-            instructor = instructor_param
-            table_html = get_table_html(instructor)
+        instructor = instructor_param
+        table_html = get_table_html(instructor)
     else:
         if instructor_param:
-            print(f"[WARN] '{instructor_param}' not found or invalid")
+            print(f"[WARN] '{instructor_param}' not found")
             message = (
                 '<div style="text-align:center; padding:32px; background:#fff5f5; '
                 'border-radius:12px; margin:32px auto; max-width:600px; border:1px solid #ffcccc;">'
                 '<h3 style="color:#c41e3a; margin-bottom:16px;">Not found</h3>'
-                f'<p>"{instructor_param}" does not match any available sheet.</p>'
+                f'<p>"{instructor_param}" does not match any sheet.</p>'
                 '<p style="color:#555;">Please select from the dropdown.</p>'
                 '</div>'
             )
@@ -196,9 +182,9 @@ def danger_report(path=''):
                 '<div style="text-align:center; padding:60px 24px; background:#f9f9f9; '
                 'border-radius:18px; margin:48px auto; max-width:720px; '
                 'box-shadow:0 4px 12px rgba(0,0,0,0.06);">'
-                '<h2 style="margin-bottom:20px; font-size:28px;">Danger Report</h2>'
+                '<h2 style="margin-bottom:20px; font-size:28px;">Student Head Ups Report</h2>'
                 '<p style="font-size:17px; color:#444; max-width:580px; margin:0 auto 28px;">'
-                'Select an instructor from the dropdown menu above to view their data.'
+                'Select an instructor from the dropdown menu above to see their list.'
                 '</p>'
                 '</div>'
             )
