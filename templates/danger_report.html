@@ -199,6 +199,17 @@
             max-width: 300px !important;
         }
 
+
+	/* 🔥 Nuclear fix for pandas inline widths */
+	table.dataframe th,
+	table.dataframe td {
+    	max-width: 260px !important;
+    	min-width: 0 !important;
+    	white-space: normal !important;
+    	word-break: break-word !important;
+    	overflow-wrap: break-word !important;
+	}
+
          /* Remove pandas inline width that forces table to expand */
         table.dataframe.table.table-striped.table-bordered.table-hover th,
         table.dataframe.table.table-striped.table-bordered.table-hover td {
@@ -402,8 +413,7 @@
 <div class="container">
 
     <header>
-        <h1>Student Heads Up Report{{ ' – ' + instructor if instructor and instructor != "Select an Instructor" else '' }}</h1>
-        <div class="controls">
+              <div class="controls">
             <button class="btn btn-reset" onclick="window.location.href='/'">← Back</button>
             <button id="exportBtn" class="btn btn-export">Export as PNG</button>
         </div>
