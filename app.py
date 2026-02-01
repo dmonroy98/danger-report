@@ -23,8 +23,10 @@ else:
     print(f"Using Excel file: {EXCEL_PATH}")
     try:
         excel_file = pd.ExcelFile(EXCEL_PATH)
-        INSTRUCTORS = excel_file.sheet_names  # all sheets included
-        print(f"Successfully loaded {len(INSTRUCTORS)} instructors/sheets: {INSTRUCTORS}")
+        raw_sheets = excel_file.sheet_names
+        # Skip the first sheet completely (not in dropdown, not loadable)
+        INSTRUCTORS = raw_sheets[1:] if len(raw_sheets) > 1 else []
+        print(f"Loaded {len(INSTRUCTORS)} selectable instructors (first sheet skipped): {INSTRUCTORS}")
     except Exception as e:
         print(f"ERROR loading Excel file {EXCEL_PATH}: {e}")
         INSTRUCTORS = ["Excel file found but cannot be read"]
@@ -57,7 +59,7 @@ def get_table_html(instructor):
 
     try:
         if instructor not in INSTRUCTORS:
-            return f'<p style="color: red;">Sheet for "{instructor}" not found in Excel.</p>'
+            return f'<p style="color: red;">Instructor/sheet "{instructor}" not found.</p>'
 
         print(f"[DEBUG] Loading sheet: '{instructor}'")
 
@@ -66,29 +68,28 @@ def get_table_html(instructor):
 
         df.columns = df.columns.str.strip().str.replace(r'\s+', ' ', regex=True)
 
-        # Extract numeric ID from first column (e.g. "0 | Name" → becomes "1 | Name" for display)
+        # Extract numeric ID from first column (e.g. "0 | Name" → display "1 | Name")
         first_col = df.columns[0] if len(df.columns) > 0 else None
         if first_col:
             def extract_id(val):
                 if pd.isna(val):
-                    return 999999
+                    return 999999, str(val)
                 str_val = str(val).strip()
                 if ' | ' in str_val:
                     parts = str_val.split(' | ', 1)
                     try:
                         real_id = int(parts[0].strip())
-                        display_id = real_id + 1  # shift 0 → 1, 1 → 2, etc.
-                        return display_id, f"{display_id} | {parts[1]}"
+                        display_id = real_id + 1  # shift to 1-based
+                        return real_id, f"{display_id} | {parts[1]}"
                     except ValueError:
                         return 999999, str_val
                 return 999999, str_val
 
-            # Apply extraction — store both sort value (original) and display value
             df[['sort_id', first_col]] = df[first_col].apply(
                 lambda x: pd.Series(extract_id(x))
             )
 
-        # Build sorting keys (sort on original numeric ID, display updated value)
+        # Build sorting keys
         sort_keys = []
         ascending_flags = []
 
@@ -116,23 +117,22 @@ def get_table_html(instructor):
             print(f"[DEBUG] Sorting by {sort_keys} asc={ascending_flags}")
             df = df.sort_values(by=sort_keys, ascending=ascending_flags)
 
-        # Clean temp columns (keep updated first_col for display)
-        for col in ['sort_id', 'sort_day']:
+        for col in ['sort_day']:
             if col in df.columns:
                 df = df.drop(columns=[col], errors='ignore')
 
-        # Minimal Apple-like palette (very subtle)
+        # Slightly darker Apple-inspired palette
         def row_background(row):
             day_num = extract_day_code(row.get('Class Name', pd.NA))
             colors = {
-                0: '#f5f5f7',   # Monday
-                1: '#f8f8f8',   # Tuesday
-                2: '#f6f8fa',   # Wednesday
-                3: '#fdfdfd',   # Thursday
-                4: '#f9f9fb',   # Friday
-                5: '#f5f9ff',   # Saturday
-                6: '#ffffff',   # Sunday
-                99: '#f8f8f8'   # Unknown
+                0: '#e8f0ff',   # Monday     deeper pale blue
+                1: '#fff0e8',   # Tuesday    warmer peach
+                2: '#e8fff0',   # Wednesday  deeper mint
+                3: '#fff8e8',   # Thursday   richer cream
+                4: '#f0e8ff',   # Friday     deeper lavender
+                5: '#e8f4ff',   # Saturday   deeper cool blue
+                6: '#f8f8f8',   # Sunday     light gray-white
+                99: '#f0f0f0'   # Unknown    medium light gray
             }
             bg_color = colors.get(day_num, '#ffffff')
             return [f'background-color: {bg_color}'] * len(row)
@@ -169,17 +169,18 @@ def danger_report(path=''):
     table_html = None
     message = None
 
+    # Only load if param exists and is in the selectable list (first sheet already excluded)
     if instructor_param and instructor_param in INSTRUCTORS:
         instructor = instructor_param
         table_html = get_table_html(instructor)
     else:
         if instructor_param:
-            print(f"[WARN] '{instructor_param}' not found")
+            print(f"[WARN] '{instructor_param}' not found or invalid")
             message = (
                 '<div style="text-align:center; padding:32px; background:#fff5f5; '
                 'border-radius:12px; margin:32px auto; max-width:600px; border:1px solid #ffcccc;">'
                 '<h3 style="color:#c41e3a; margin-bottom:16px;">Not found</h3>'
-                f'<p>"{instructor_param}" does not match any sheet.</p>'
+                f'<p>"{instructor_param}" does not match any available instructor sheet.</p>'
                 '<p style="color:#555;">Please select from the dropdown.</p>'
                 '</div>'
             )
