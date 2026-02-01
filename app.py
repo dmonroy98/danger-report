@@ -66,7 +66,7 @@ def get_table_html(instructor):
 
         df.columns = df.columns.str.strip().str.replace(r'\s+', ' ', regex=True)
 
-        # Extract numeric ID from first column (e.g. "5 | Name")
+        # Extract numeric ID from first column (e.g. "0 | Name" → becomes "1 | Name" for display)
         first_col = df.columns[0] if len(df.columns) > 0 else None
         if first_col:
             def extract_id(val):
@@ -76,14 +76,19 @@ def get_table_html(instructor):
                 if ' | ' in str_val:
                     parts = str_val.split(' | ', 1)
                     try:
-                        return int(parts[0].strip())
+                        real_id = int(parts[0].strip())
+                        display_id = real_id + 1  # shift 0 → 1, 1 → 2, etc.
+                        return display_id, f"{display_id} | {parts[1]}"
                     except ValueError:
-                        return 999999
-                return 999999
+                        return 999999, str_val
+                return 999999, str_val
 
-            df['sort_id'] = df[first_col].apply(extract_id)
+            # Apply extraction — store both sort value (original) and display value
+            df[['sort_id', first_col]] = df[first_col].apply(
+                lambda x: pd.Series(extract_id(x))
+            )
 
-        # Build sorting keys
+        # Build sorting keys (sort on original numeric ID, display updated value)
         sort_keys = []
         ascending_flags = []
 
@@ -111,11 +116,12 @@ def get_table_html(instructor):
             print(f"[DEBUG] Sorting by {sort_keys} asc={ascending_flags}")
             df = df.sort_values(by=sort_keys, ascending=ascending_flags)
 
+        # Clean temp columns (keep updated first_col for display)
         for col in ['sort_id', 'sort_day']:
             if col in df.columns:
                 df = df.drop(columns=[col], errors='ignore')
 
-        # Minimal Apple-like palette
+        # Minimal Apple-like palette (very subtle)
         def row_background(row):
             day_num = extract_day_code(row.get('Class Name', pd.NA))
             colors = {
@@ -151,7 +157,7 @@ def get_table_html(instructor):
             error_msg += f'<p>Available columns: {", ".join(df.columns.tolist())}</p>'
         return error_msg
 
-# ─── Route – no auto-load of first sheet, but direct links work ─────────────────
+# ─── Route ──────────────────────────────────────────────────────────────────────
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def danger_report(path=''):
@@ -182,7 +188,7 @@ def danger_report(path=''):
                 '<div style="text-align:center; padding:60px 24px; background:#f9f9f9; '
                 'border-radius:18px; margin:48px auto; max-width:720px; '
                 'box-shadow:0 4px 12px rgba(0,0,0,0.06);">'
-                '<h2 style="margin-bottom:20px; font-size:28px;">Student Head Ups Report</h2>'
+                '<h2 style="margin-bottom:20px; font-size:28px;">Heads Up Report</h2>'
                 '<p style="font-size:17px; color:#444; max-width:580px; margin:0 auto 28px;">'
                 'Select an instructor from the dropdown menu above to see their list.'
                 '</p>'
