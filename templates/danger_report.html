@@ -18,7 +18,6 @@
             --shadow:       0 4px 30px rgba(0,0,0,0.08);
         }
 
-        /* Base layout */
         body {
             background: var(--bg);
             color: var(--text);
@@ -128,7 +127,6 @@
             box-shadow: 0 0 0 3px rgba(0,122,255,0.2);
         }
 
-        /* Search bar wrapper (for floating behavior on mobile) */
         .search-bar-wrapper {
             position: relative;
             z-index: 5;
@@ -163,7 +161,6 @@
             overflow: hidden;
         }
 
-        /* Vertical + horizontal scroll wrapper with scroll shadows */
         .table-wrapper {
             position: relative;
             max-height: 70vh;
@@ -301,7 +298,6 @@
             font-size: 14px;
         }
 
-        /* Loading shimmer overlay */
         .shimmer-overlay {
             position: fixed;
             inset: 0;
@@ -312,7 +308,6 @@
             pointer-events: none;
         }
 
-        /* Animations */
         @keyframes fadeInUp {
             from {
                 opacity: 0;
@@ -351,7 +346,6 @@
             }
         }
 
-        /* Mobile optimizations */
         @media (max-width: 768px) {
             body {
                 padding: 20px 12px;
@@ -404,7 +398,6 @@
                 margin-bottom: 12px;
             }
 
-            /* Floating, sticky search bar on mobile */
             .search-bar-wrapper {
                 position: sticky;
                 top: 0;
@@ -458,7 +451,6 @@
             }
         }
 
-        /* Automatic dark mode */
         @media (prefers-color-scheme: dark) {
             :root {
                 --bg:           #000000;
@@ -578,7 +570,6 @@
         </select>
     </div>
 
-    <!-- Floating search bar wrapper (especially for mobile) -->
     <div class="search-bar-wrapper">
         <div class="search-box">
             <input type="text" id="searchInput" class="search-input" placeholder="Search table…">
@@ -616,10 +607,8 @@
         const tbody = table.tBodies[0];
         const rows = Array.from(tbody.rows);
 
-        // Initial row fade-in
         rows.forEach(row => row.classList.add('row-fade-in'));
 
-        // Scroll shadow handling
         function updateShadows() {
             if (!wrapper) return;
             const top = wrapper.scrollTop;
@@ -633,7 +622,6 @@
             updateShadows();
         }
 
-        // Footer update
         function updateFooter() {
             if (!footer) return;
             const allRows = Array.from(tbody.rows);
@@ -646,20 +634,12 @@
             footer.textContent = text;
         }
 
-        // Sorting
         const sortState = {};
 
         function getCellValue(row, index) {
             const cell = row.children[index];
             if (!cell) return '';
-            const dataSort = cell.getAttribute('data-sort');
-            let val = dataSort !== null ? dataSort : cell.textContent.trim();
-
-            // Try to parse leading integer (for "1 | Student Name" style)
-            const match = val.match(/^(\d+)/);
-            if (match) {
-                return Number(match[1]);
-            }
+            const val = cell.textContent.trim();
 
             const num = Number(val);
             if (!isNaN(num)) return num;
@@ -698,7 +678,7 @@
 
             sortedRows.forEach(row => {
                 row.classList.remove('row-fade-in');
-                void row.offsetWidth; // force reflow
+                void row.offsetWidth;
                 row.classList.add('row-fade-in');
                 tbody.appendChild(row);
             });
@@ -706,11 +686,51 @@
             updateFooter();
         }
 
-        // Make headers sortable
         const headerCells = table.querySelectorAll('thead th');
         headerCells.forEach((th, index) => {
             th.classList.add('sortable');
             th.addEventListener('click', () => sortTableByColumn(index));
         });
 
-        updateFooter
+        updateFooter();
+
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function () {
+                const filter = this.value.toLowerCase();
+                let visibleCount = 0;
+                Array.from(tbody.rows).forEach(row => {
+                    const match = row.textContent.toLowerCase().includes(filter);
+                    row.style.display = match ? '' : 'none';
+                    if (match) visibleCount++;
+                });
+
+                if (noResults) {
+                    noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+                }
+
+                updateFooter();
+            });
+        }
+    }
+
+    const exportBtn = document.getElementById('exportBtn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function () {
+            alert('PNG export can be wired up here (e.g., with html2canvas).');
+        });
+    }
+
+    window.addEventListener('load', () => {
+        const overlay = document.getElementById('shimmerOverlay');
+        if (overlay) {
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 450);
+        }
+        initTableFeatures();
+    });
+</script>
+
+</body>
+</html>

@@ -18,6 +18,7 @@ if not excel_files:
     INSTRUCTORS = ["No Excel file found in /data"]
     print("ERROR: No Excel file (*.xls*, *.xlsx, *.xlsm, etc.) found in data/ folder")
 else:
+    # Prefer modern Excel formats first
     excel_files.sort(key=lambda f: (not f.lower().endswith(('.xlsx', '.xlsm')), f))
     EXCEL_PATH = excel_files[0]
     print(f"Using Excel file: {EXCEL_PATH}")
@@ -45,7 +46,20 @@ DAY_ORDER = {
     'SU':  6,
 }
 
+
 def extract_day_code(class_name):
+    """Extract a numeric day code from the end of the Class Name string.
+
+    Expected patterns (case-insensitive, trailing):
+    - "Ballet 1 M"
+    - "Tap 2 TU"
+    - "Jazz 3 W"
+    - "Hip Hop TH"
+    - "Company SA"
+    - "Rehearsal SU"
+
+    Returns an integer 0–6 for known days, or 99 as a fallback.
+    """
     if pd.isna(class_name):
         return 99
     match = re.search(r'\s*([A-Z]{1,2})$', str(class_name).strip().upper())
@@ -54,8 +68,18 @@ def extract_day_code(class_name):
         return DAY_ORDER.get(code, 99)
     return 99
 
+
 # ─── Table generation ───────────────────────────────────────────────────────────
-def get_table_html(instructor):
+
+def get_table_html(instructor: str) -> str:
+    """Generate styled HTML table for a given instructor sheet.
+
+    - Loads the sheet into a DataFrame
+    - Normalizes column names
+    - Sorts by day (from Class Name) and then alphabetically within each day
+    - Applies row background colors based on day
+    - Returns HTML for direct embedding in the template
+    """
     if EXCEL_PATH is None:
         return '<p style="color: red; font-weight: bold; padding: 20px;">No valid Excel file available in /data folder.</p>'
 
@@ -68,68 +92,44 @@ def get_table_html(instructor):
         df = pd.read_excel(EXCEL_PATH, sheet_name=instructor, engine='openpyxl')
         df = df.fillna('')
 
+        # Normalize column names: strip spaces, collapse internal whitespace
         df.columns = df.columns.str.strip().str.replace(r'\s+', ' ', regex=True)
 
-        # ─── Extract numeric ID from first column ────────────────────────────────
-        first_col = df.columns[0] if len(df.columns) > 0 else None
-        if first_col:
-            def extract_id(val):
-                if pd.isna(val):
-                    return 999999, str(val)
-                str_val = str(val).strip()
-                if ' | ' in str_val:
-                    parts = str_val.split(' | ', 1)
-                    try:
-                        real_id = int(parts[0].strip())
-                        display_id = real_id + 1
-                        return real_id, f"{display_id} | {parts[1]}"
-                    except ValueError:
-                        return 999999, str_val
-                return 999999, str_val
-
-            df[['sort_id', first_col]] = df[first_col].apply(
-                lambda x: pd.Series(extract_id(x))
-            )
-
-        # ─── Sorting ─────────────────────────────────────────────────────────────
+        # ─── Sorting ─────────────────────────────────────────────────────────
         sort_keys = []
         ascending_flags = []
 
-        if 'sort_id' in df.columns:
-            sort_keys.append('sort_id')
-            ascending_flags.append(True)
-
+        # Primary: sort by day extracted from Class Name
         if 'Class Name' in df.columns:
             df['sort_day'] = df['Class Name'].apply(extract_day_code)
             sort_keys.append('sort_day')
             ascending_flags.append(True)
 
+            # Secondary: alphabetical by Class Name within each day
             sort_keys.append('Class Name')
             ascending_flags.append(True)
 
-        if 'Date' in df.columns:
-            try:
-                df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
-                sort_keys.append('Date')
-                ascending_flags.append(False)
-            except:
-                pass
-
+        # Apply sorting if we have keys
         if sort_keys:
             print(f"[DEBUG] Sorting by {sort_keys} asc={ascending_flags}")
             df = df.sort_values(by=sort_keys, ascending=ascending_flags)
 
         # Clean temp columns
-        for col in ['sort_id', 'sort_day']:
-            if col in df.columns:
-                df = df.drop(columns=[col], errors='ignore')
+        if 'sort_day' in df.columns:
+            df = df.drop(columns=['sort_day'], errors='ignore')
 
-        # Slightly darker palette
+        # ─── Row coloring based on day ──────────────────────────────────────
         def row_background(row):
             day_num = extract_day_code(row.get('Class Name', pd.NA))
             colors = {
-                0: '#e8f0ff', 1: '#fff0e8', 2: '#e8fff0', 3: '#fff8e8',
-                4: '#f0e8ff', 5: '#e8f4ff', 6: '#f8f8f8', 99: '#f0f0f0'
+                0: '#e8f0ff',  # Monday
+                1: '#fff0e8',  # Tuesday
+                2: '#e8fff0',  # Wednesday
+                3: '#fff8e8',  # Thursday
+                4: '#f0e8ff',  # Friday
+                5: '#e8f4ff',  # Saturday
+                6: '#f8f8f8',  # Sunday
+                99: '#f0f0f0', # Unknown
             }
             bg_color = colors.get(day_num, '#ffffff')
             return [f'background-color: {bg_color}'] * len(row)
@@ -154,7 +154,9 @@ def get_table_html(instructor):
             error_msg += f'<p>Available columns: {", ".join(df.columns.tolist())}</p>'
         return error_msg
 
+
 # ─── Route ──────────────────────────────────────────────────────────────────────
+
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def danger_report(path=''):
@@ -202,6 +204,7 @@ def danger_report(path=''):
         updated_at=updated_at,
         message=message or ""
     )
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
