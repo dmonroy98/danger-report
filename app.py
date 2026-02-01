@@ -24,9 +24,11 @@ else:
     try:
         excel_file = pd.ExcelFile(EXCEL_PATH)
         raw_sheets = excel_file.sheet_names
-        # Skip the first sheet completely (not in dropdown, not loadable)
-        INSTRUCTORS = raw_sheets[1:] if len(raw_sheets) > 1 else []
-        print(f"Loaded {len(INSTRUCTORS)} selectable instructors (first sheet skipped): {INSTRUCTORS}")
+        # Skip first sheet ("Combined" or summary) completely
+        selectable_sheets = raw_sheets[1:] if len(raw_sheets) > 1 else []
+        # Sort alphabetically for dropdown
+        INSTRUCTORS = sorted(selectable_sheets)
+        print(f"Loaded {len(INSTRUCTORS)} selectable instructors (first skipped, sorted): {INSTRUCTORS}")
     except Exception as e:
         print(f"ERROR loading Excel file {EXCEL_PATH}: {e}")
         INSTRUCTORS = ["Excel file found but cannot be read"]
@@ -59,7 +61,7 @@ def get_table_html(instructor):
 
     try:
         if instructor not in INSTRUCTORS:
-            return f'<p style="color: red;">Instructor/sheet "{instructor}" not found.</p>'
+            return f'<p style="color: red;">Instructor/sheet "{instructor}" not found or restricted.</p>'
 
         print(f"[DEBUG] Loading sheet: '{instructor}'")
 
@@ -68,7 +70,7 @@ def get_table_html(instructor):
 
         df.columns = df.columns.str.strip().str.replace(r'\s+', ' ', regex=True)
 
-        # Extract numeric ID from first column (e.g. "0 | Name" → display "1 | Name")
+        # ─── Extract numeric ID from first column ────────────────────────────────
         first_col = df.columns[0] if len(df.columns) > 0 else None
         if first_col:
             def extract_id(val):
@@ -79,7 +81,7 @@ def get_table_html(instructor):
                     parts = str_val.split(' | ', 1)
                     try:
                         real_id = int(parts[0].strip())
-                        display_id = real_id + 1  # shift to 1-based
+                        display_id = real_id + 1
                         return real_id, f"{display_id} | {parts[1]}"
                     except ValueError:
                         return 999999, str_val
@@ -89,7 +91,7 @@ def get_table_html(instructor):
                 lambda x: pd.Series(extract_id(x))
             )
 
-        # Build sorting keys
+        # ─── Sorting ─────────────────────────────────────────────────────────────
         sort_keys = []
         ascending_flags = []
 
@@ -117,22 +119,17 @@ def get_table_html(instructor):
             print(f"[DEBUG] Sorting by {sort_keys} asc={ascending_flags}")
             df = df.sort_values(by=sort_keys, ascending=ascending_flags)
 
-        for col in ['sort_day']:
+        # Clean temp columns
+        for col in ['sort_id', 'sort_day']:
             if col in df.columns:
                 df = df.drop(columns=[col], errors='ignore')
 
-        # Slightly darker Apple-inspired palette
+        # Slightly darker palette
         def row_background(row):
             day_num = extract_day_code(row.get('Class Name', pd.NA))
             colors = {
-                0: '#e8f0ff',   # Monday     deeper pale blue
-                1: '#fff0e8',   # Tuesday    warmer peach
-                2: '#e8fff0',   # Wednesday  deeper mint
-                3: '#fff8e8',   # Thursday   richer cream
-                4: '#f0e8ff',   # Friday     deeper lavender
-                5: '#e8f4ff',   # Saturday   deeper cool blue
-                6: '#f8f8f8',   # Sunday     light gray-white
-                99: '#f0f0f0'   # Unknown    medium light gray
+                0: '#e8f0ff', 1: '#fff0e8', 2: '#e8fff0', 3: '#fff8e8',
+                4: '#f0e8ff', 5: '#e8f4ff', 6: '#f8f8f8', 99: '#f0f0f0'
             }
             bg_color = colors.get(day_num, '#ffffff')
             return [f'background-color: {bg_color}'] * len(row)
@@ -169,7 +166,6 @@ def danger_report(path=''):
     table_html = None
     message = None
 
-    # Only load if param exists and is in the selectable list (first sheet already excluded)
     if instructor_param and instructor_param in INSTRUCTORS:
         instructor = instructor_param
         table_html = get_table_html(instructor)
