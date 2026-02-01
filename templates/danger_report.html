@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Head Ups Report{{ ' – ' + instructor if instructor and instructor != "Select an Instructor" else '' }}</title>
+    <title>Student Heads Up Report{{ ' – ' + instructor if instructor and instructor != "Select an Instructor" else '' }}</title>
 
     <style>
         :root {
@@ -122,11 +122,6 @@
             color: var(--text);
         }
 
-        .instructor-select select:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(0,122,255,0.2);
-        }
-
         .search-bar-wrapper {
             position: relative;
             z-index: 5;
@@ -146,19 +141,6 @@
             background: white;
             transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
         }
-
-
-		/* Allow table to shrink and wrap on desktop */
-	.table {
-	    width: 100%;
-  	  table-layout: auto;
-	}
-
-.table th,
-.table td {
-    white-space: normal !important;
-    word-break: break-word;
-}
 
         .search-input:focus {
             outline: none;
@@ -182,6 +164,7 @@
             -webkit-overflow-scrolling: touch;
         }
 
+        /* Scroll shadows */
         .table-wrapper::before,
         .table-wrapper::after {
             content: "";
@@ -212,10 +195,10 @@
             opacity: 1;
         }
 
+        /* Table responsiveness fix */
         .table {
             width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
+            table-layout: auto;
         }
 
         .table th,
@@ -224,6 +207,8 @@
             text-align: left;
             border-bottom: 1px solid var(--border);
             background: var(--card);
+            white-space: normal !important;
+            word-break: break-word;
         }
 
         .table th {
@@ -252,41 +237,12 @@
             content: "↓";
         }
 
-        .table tbody tr:last-child td {
-            border-bottom: none;
-        }
-
         .table tbody tr:hover {
             background: rgba(0,122,255,0.04);
         }
 
         .row-fade-in {
             animation: rowFadeIn 0.25s ease-out;
-        }
-
-        .welcome,
-        .not-found {
-            text-align: center;
-            padding: 60px 24px;
-            background: white;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            margin: 40px auto;
-            max-width: 760px;
-        }
-
-        .welcome h2,
-        .not-found h3 {
-            margin-bottom: 20px;
-            font-size: 28px;
-        }
-
-        .welcome p,
-        .not-found p {
-            color: var(--text-light);
-            font-size: 17px;
-            max-width: 580px;
-            margin: 0 auto 24px;
         }
 
         .table-footer {
@@ -298,10 +254,6 @@
             align-items: center;
         }
 
-        .table-footer span {
-            white-space: nowrap;
-        }
-
         .no-results {
             margin-top: 16px;
             padding: 16px 18px;
@@ -311,6 +263,7 @@
             font-size: 14px;
         }
 
+        /* Loading shimmer */
         .shimmer-overlay {
             position: fixed;
             inset: 0;
@@ -321,52 +274,29 @@
             pointer-events: none;
         }
 
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes rowFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(4px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
         @keyframes shimmerMove {
-            0% {
-                background-position: -200% 0;
-            }
-            100% {
-                background-position: 200% 0;
-            }
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
         }
 
         @keyframes shimmerFade {
-            to {
-                opacity: 0;
-                visibility: hidden;
-            }
+            to { opacity: 0; visibility: hidden; }
         }
 
-        @media (max-width: 768px) {
-            body {
-                padding: 20px 12px;
-            }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-            .container {
-                max-width: 100%;
-            }
+        @keyframes rowFadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            body { padding: 20px 12px; }
+            .container { max-width: 100%; }
 
             header {
                 flex-direction: column;
@@ -375,11 +305,7 @@
                 margin-bottom: 16px;
             }
 
-            h1 {
-                font-size: 22px;
-                line-height: 1.3;
-                max-width: 100%;
-            }
+            h1 { font-size: 22px; }
 
             .controls {
                 width: 100%;
@@ -387,29 +313,7 @@
                 gap: 10px;
             }
 
-            .btn {
-                width: 100%;
-                padding: 12px;
-                font-size: 16px;
-            }
-
-            .logo-container {
-                margin-bottom: 16px;
-            }
-
-            .logo {
-                max-width: 130px;
-            }
-
-            .updated {
-                font-size: 14px;
-                margin-bottom: 12px;
-            }
-
-            .instructor-select {
-                max-width: 100%;
-                margin-bottom: 12px;
-            }
+            .btn { width: 100%; padding: 12px; font-size: 16px; }
 
             .search-bar-wrapper {
                 position: sticky;
@@ -417,17 +321,6 @@
                 padding: 8px 0 10px;
                 margin-bottom: 12px;
                 backdrop-filter: blur(18px);
-                -webkit-backdrop-filter: blur(18px);
-            }
-
-            .search-box {
-                max-width: 100%;
-            }
-
-            .search-input {
-                border-radius: 999px;
-                padding: 12px 16px;
-                font-size: 15px;
             }
 
             .table-wrapper {
@@ -438,65 +331,23 @@
             .table td {
                 padding: 10px 12px;
                 font-size: 13px;
-                white-space: nowrap;
-            }
-
-            .welcome,
-            .not-found {
-                padding: 40px 20px;
-                margin: 24px auto;
-            }
-
-            .welcome h2,
-            .not-found h3 {
-                font-size: 22px;
-            }
-
-            .welcome p,
-            .not-found p {
-                font-size: 15px;
-            }
-
-            .table-footer {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 4px;
             }
         }
 
+        /* Dark mode */
         @media (prefers-color-scheme: dark) {
             :root {
-                --bg:           #000000;
-                --card:         #1c1c1e;
-                --text:         #f5f5f7;
-                --text-light:   #a1a1a6;
-                --border:       #3a3a3c;
-                --accent:       #0a84ff;
-                --accent-dark:  #0060df;
-                --shadow:       0 8px 30px rgba(0,0,0,0.7);
+                --bg: #000;
+                --card: #1c1c1e;
+                --text: #f5f5f7;
+                --text-light: #a1a1a6;
+                --border: #3a3a3c;
+                --accent: #0a84ff;
+                --accent-dark: #0060df;
             }
 
             body {
-                background: radial-gradient(circle at top, #1c1c1e 0, #000000 55%);
-                color: var(--text);
-            }
-
-            .table-card,
-            .welcome,
-            .not-found,
-            .instructor-select {
-                background: #1c1c1e;
-                border-color: var(--border);
-            }
-
-            .search-input {
-                background: rgba(44,44,46,0.9);
-                color: var(--text);
-                border-color: #3a3a3c;
-            }
-
-            .search-input::placeholder {
-                color: var(--text-light);
+                background: radial-gradient(circle at top, #1c1c1e 0, #000 55%);
             }
 
             .table th,
@@ -513,35 +364,15 @@
                 background: rgba(10,132,255,0.18);
             }
 
-            .btn-reset {
-                background: #1c1c1e;
+            .search-input {
+                background: rgba(44,44,46,0.9);
                 color: var(--text);
-                border-color: var(--border);
-            }
-
-            .btn-reset:hover {
-                background: #2c2c2e;
-            }
-
-            .btn-export {
-                background: var(--accent);
-            }
-
-            .search-bar-wrapper {
-                background: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0.6));
-            }
-
-            .no-results {
-                background: rgba(255,69,58,0.12);
-                color: #ff453a;
-            }
-
-            .shimmer-overlay {
-                background: linear-gradient(120deg, #1c1c1e 0%, #2c2c2e 20%, #1c1c1e 40%, #000000 100%);
+                border-color: #3a3a3c;
             }
         }
     </style>
 </head>
+
 <body>
 
 <div id="shimmerOverlay" class="shimmer-overlay"></div>
@@ -549,21 +380,17 @@
 <div class="container">
 
     <header>
-        <h1>Student Head Ups Report{{ ' – ' + instructor if instructor and instructor != "Select an Instructor" else '' }}</h1>
+        <h1>Student Heads Up Report{{ ' – ' + instructor if instructor and instructor != "Select an Instructor" else '' }}</h1>
         <div class="controls">
-            <button class="btn btn-reset" onclick="window.location.href='/'">
-                ← Back / Reset
-            </button>
-            <button id="exportBtn" class="btn btn-export">
-                Export as PNG
-            </button>
+            <button class="btn btn-reset" onclick="window.location.href='/'">← Back / Reset</button>
+            <button id="exportBtn" class="btn btn-export">Export as PNG</button>
         </div>
     </header>
 
     <div class="updated">Updated: {{ updated_at }}</div>
 
     <div class="logo-container">
-        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
+        <img src="{{ url_for('static', filename='logo.png') }}" class="logo">
     </div>
 
     {% if message %}
@@ -572,13 +399,9 @@
 
     <div class="instructor-select">
         <select onchange="window.location.href='/?instructor=' + encodeURIComponent(this.value)">
-            <option value="" disabled {% if not instructor or instructor == "Select an Instructor" %}selected{% endif %}>
-                Select Instructor
-            </option>
+            <option value="" disabled {% if not instructor or instructor == "Select an Instructor" %}selected{% endif %}>Select Instructor</option>
             {% for inst in instructors %}
-                <option value="{{ inst }}" {% if inst == instructor %}selected{% endif %}>
-                    {{ inst }}
-                </option>
+                <option value="{{ inst }}" {% if inst == instructor %}selected{% endif %}>{{ inst }}</option>
             {% endfor %}
         </select>
     </div>
@@ -596,13 +419,9 @@
         </div>
     </div>
 
-    <div id="tableFooter" class="table-footer" data-instructor="{{ instructor }}">
-        <!-- Filled by JS -->
-    </div>
+    <div id="tableFooter" class="table-footer" data-instructor="{{ instructor }}"></div>
 
-    <div id="noResults" class="no-results" style="display:none;">
-        No matches found. Try adjusting your search.
-    </div>
+    <div id="noResults" class="no-results" style="display:none;">No matches found.</div>
     {% endif %}
 
 </div>
@@ -613,134 +432,76 @@
         const wrapper = document.querySelector('.table-wrapper');
         const footer = document.getElementById('tableFooter');
         const noResults = document.getElementById('noResults');
-        const instructorName = footer ? (footer.dataset.instructor || '') : '';
 
-        if (!table || !table.tBodies.length) return;
+        if (!table) return;
 
         const tbody = table.tBodies[0];
-        const rows = Array.from(tbody.rows);
-
-        rows.forEach(row => row.classList.add('row-fade-in'));
 
         function updateShadows() {
-            if (!wrapper) return;
             const top = wrapper.scrollTop;
             const max = wrapper.scrollHeight - wrapper.clientHeight;
             wrapper.classList.toggle('shadow-top', top > 0);
             wrapper.classList.toggle('shadow-bottom', top < max - 1);
         }
 
-        if (wrapper) {
-            wrapper.addEventListener('scroll', updateShadows);
-            updateShadows();
-        }
+        wrapper.addEventListener('scroll', updateShadows);
+        updateShadows();
 
         function updateFooter() {
-            if (!footer) return;
-            const allRows = Array.from(tbody.rows);
-            const total = allRows.length;
-            const visible = allRows.filter(r => r.style.display !== 'none').length;
-            let text = `Showing ${visible} of ${total} entries`;
-            if (instructorName && instructorName !== 'Select an Instructor') {
-                text += ` · Instructor: ${instructorName}`;
-            }
-            footer.textContent = text;
+            const rows = Array.from(tbody.rows);
+            const visible = rows.filter(r => r.style.display !== 'none').length;
+            footer.textContent = `Showing ${visible} of ${rows.length} entries`;
         }
 
         const sortState = {};
 
         function getCellValue(row, index) {
-            const cell = row.children[index];
-            if (!cell) return '';
-            const val = cell.textContent.trim();
-
+            const val = row.children[index].textContent.trim();
             const num = Number(val);
-            if (!isNaN(num)) return num;
-
-            return val.toLowerCase();
+            return isNaN(num) ? val.toLowerCase() : num;
         }
 
-        function clearSortIndicators() {
-            table.querySelectorAll('th').forEach(th => {
-                th.classList.remove('sorted-asc', 'sorted-desc');
-            });
-        }
+        function sortTableByColumn(index) {
+            const rows = Array.from(tbody.rows);
+            const current = sortState[index] || 'asc';
+            const multiplier = current === 'asc' ? 1 : -1;
 
-        function sortTableByColumn(columnIndex) {
-            const headerCells = table.querySelectorAll('thead th');
-            const th = headerCells[columnIndex];
-            if (!th) return;
-
-            const key = columnIndex;
-            const currentDir = sortState[key] || 'asc';
-            const multiplier = currentDir === 'asc' ? 1 : -1;
-
-            const sortedRows = Array.from(tbody.rows).sort((a, b) => {
-                const aVal = getCellValue(a, columnIndex);
-                const bVal = getCellValue(b, columnIndex);
-
-                if (aVal < bVal) return -1 * multiplier;
-                if (aVal > bVal) return 1 * multiplier;
-                return 0;
+            rows.sort((a, b) => {
+                const A = getCellValue(a, index);
+                const B = getCellValue(b, index);
+                return A < B ? -1 * multiplier : A > B ? 1 * multiplier : 0;
             });
 
-            sortState[key] = currentDir === 'asc' ? 'desc' : 'asc';
+            sortState[index] = current === 'asc' ? 'desc' : 'asc';
 
-            clearSortIndicators();
-            th.classList.add(sortState[key] === 'asc' ? 'sorted-asc' : 'sorted-desc');
-
-            sortedRows.forEach(row => {
-                row.classList.remove('row-fade-in');
-                void row.offsetWidth;
-                row.classList.add('row-fade-in');
-                tbody.appendChild(row);
-            });
-
+            rows.forEach(r => tbody.appendChild(r));
             updateFooter();
         }
 
-        const headerCells = table.querySelectorAll('thead th');
-        headerCells.forEach((th, index) => {
+        document.querySelectorAll('th').forEach((th, i) => {
             th.classList.add('sortable');
-            th.addEventListener('click', () => sortTableByColumn(index));
+            th.addEventListener('click', () => sortTableByColumn(i));
+        });
+
+        document.getElementById('searchInput').addEventListener('keyup', function () {
+            const filter = this.value.toLowerCase();
+            let visible = 0;
+
+            Array.from(tbody.rows).forEach(row => {
+                const match = row.textContent.toLowerCase().includes(filter);
+                row.style.display = match ? '' : 'none';
+                if (match) visible++;
+            });
+
+            noResults.style.display = visible === 0 ? 'block' : 'none';
+            updateFooter();
         });
 
         updateFooter();
-
-        const searchInput = document.getElementById('searchInput');
-        if (searchInput) {
-            searchInput.addEventListener('keyup', function () {
-                const filter = this.value.toLowerCase();
-                let visibleCount = 0;
-                Array.from(tbody.rows).forEach(row => {
-                    const match = row.textContent.toLowerCase().includes(filter);
-                    row.style.display = match ? '' : 'none';
-                    if (match) visibleCount++;
-                });
-
-                if (noResults) {
-                    noResults.style.display = visibleCount === 0 ? 'block' : 'none';
-                }
-
-                updateFooter();
-            });
-        }
-    }
-
-    const exportBtn = document.getElementById('exportBtn');
-    if (exportBtn) {
-        exportBtn.addEventListener('click', function () {
-            alert('PNG export can be wired up here (e.g., with html2canvas).');
-        });
     }
 
     window.addEventListener('load', () => {
-        const overlay = document.getElementById('shimmerOverlay');
-        if (overlay) {
-            setTimeout(() => {
-                overlay.style.display = 'none';
-            }, 450);
-        }
+        document.getElementById('shimmerOverlay').style.display = 'none';
         initTableFeatures();
     });
 </script>
