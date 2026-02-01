@@ -156,6 +156,14 @@
             overflow: hidden;
         }
 
+/* Force wrapping even when pandas injects nowrap */
+table.dataframe td,
+table.dataframe th {
+    white-space: normal !important;
+    word-break: break-word;
+}
+
+
         .table-wrapper {
             position: relative;
             max-height: 70vh;
