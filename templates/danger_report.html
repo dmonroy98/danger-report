@@ -88,7 +88,7 @@
             border-radius: var(--radius);
             overflow: hidden;
             max-width: 360px;
-            margin: 0 auto 48px;  /* more space below dropdown */
+            margin: 0 auto 32px;
         }
         .instructor-select select {
             border: none;
@@ -328,7 +328,7 @@
         </select>
     </div>
 
-    <!-- Improved landing intro with better spacing -->
+    <!-- Improved landing intro -->
     {% if not table_html %}
     <div style="max-width: 720px; margin: 48px auto; text-align: center; color: var(--text-light); font-size: 16px;">
         <h2 style="color: var(--text); font-size: 32px; margin-bottom: 28px;">Instructor Student Heads-Up</h2>
@@ -372,15 +372,14 @@
     {% endif %}
 
     {% if table_html %}
+    <!-- EXPORT AREA (captured in PNG) -->
     <div id="exportArea" data-instructor="{{ instructor }}">
         <div class="export-header">
             <div class="export-title">Student Heads Up Report</div>
             <div class="export-sub" id="exportInstructorLine">
                 Instructor: {{ instructor if instructor and instructor != "Select an Instructor" else "N/A" }}
             </div>
-            <div class="export-sub" id="exportTimestampLine">
-                Exported:
-            </div>
+            <div class="export-sub" id="exportTimestampLine"></div> <!-- Empty on screen, filled only during export -->
         </div>
         <div class="table-card">
             <div class="table-wrapper">
@@ -483,12 +482,16 @@
     function initExport() {
         const exportBtn = document.getElementById('exportBtn');
         const exportArea = document.getElementById('exportArea');
-        if (!exportBtn || !exportArea) return;
+        const exportTimestampLine = document.getElementById('exportTimestampLine');
+        if (!exportBtn || !exportArea || !exportTimestampLine) return;
+
         exportBtn.addEventListener('click', function () {
-            const exportTimestampLine = document.getElementById('exportTimestampLine');
-            if (exportTimestampLine) {
-                exportTimestampLine.textContent = "Exported: " + getCentralTimeString();
-            }
+            // Only add timestamp for the export - clear it first
+            const timestamp = "Exported: " + getCentralTimeString();
+            const originalTimestamp = exportTimestampLine.textContent;
+            exportTimestampLine.textContent = timestamp;
+
+            // Hide UI elements
             const header = document.querySelector('header');
             const controls = document.querySelector('.controls');
             const searchBar = document.querySelector('.search-bar-wrapper');
@@ -496,8 +499,12 @@
             const shimmer = document.getElementById('shimmerOverlay');
             const toHide = [header, controls, searchBar, instructorSelect, shimmer].filter(Boolean);
             toHide.forEach(el => el.style.visibility = 'hidden');
+
+            // White background
             const originalBackground = document.body.style.background;
             document.body.style.background = '#ffffff';
+
+            // Capture
             html2canvas(exportArea, {
                 scale: 2,
                 useCORS: true,
@@ -518,8 +525,11 @@
                     document.body.removeChild(link);
                 });
             }).finally(() => {
+                // Restore everything
                 toHide.forEach(el => el.style.visibility = '');
                 document.body.style.background = originalBackground;
+                // Remove timestamp from live view
+                exportTimestampLine.textContent = '';
             });
         });
     }
