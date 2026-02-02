@@ -352,7 +352,7 @@
         </div>
     </div>
 
-    <!-- Back & Export only when report loaded -->
+    <!-- Back & Export buttons only when report is loaded -->
     {% if table_html %}
     <header>
         <div class="controls">
@@ -379,41 +379,41 @@
         </select>
     </div>
 
-    <!-- Improved landing intro -->
+    <!-- New intro text - only on landing page -->
     {% if not table_html %}
-    <div style="max-width: 720px; margin: 40px auto; text-align: center; color: var(--text-light); font-size: 15.5px;">
-        <h2 style="color: var(--text); font-size: 30px; margin-bottom: 20px;">Instructor Student Heads-Up</h2>
+    <div style="max-width: 720px; margin: 40px auto; text-align: center; color: var(--text-light); font-size: 16px;">
+        <h2 style="color: var(--text); font-size: 32px; margin-bottom: 20px;">Instructor Student Heads-Up</h2>
         
         <p style="margin-bottom: 20px;">
             This tool provides a quick overview of students who may need additional attention or follow-up.
         </p>
         
-        <p style="margin: 0 0 28px 0;">
+        <p style="margin: 0 0 28px 0; font-weight: 500;">
             To get started:
         </p>
         
-        <ol style="list-style: none; padding: 0; counter-reset: step; max-width: 480px; margin: 0 auto; text-align: left;">
-            <li style="counter-increment: step; margin-bottom: 12px; position: relative; padding-left: 40px;">
-                <span style="position: absolute; left: 0; color: var(--accent); font-weight: bold;">Step 1</span>
+        <ol style="list-style: none; padding: 0; max-width: 500px; margin: 0 auto 32px; text-align: left; counter-reset: step;">
+            <li style="counter-increment: step; margin-bottom: 16px; position: relative; padding-left: 45px;">
+                <span style="position: absolute; left: 0; top: -2px; color: var(--accent); font-weight: bold; font-size: 18px;">Step 1</span>
                 Select an instructor from the dropdown above
             </li>
-            <li style="counter-increment: step; margin-bottom: 12px; position: relative; padding-left: 40px;">
-                <span style="position: absolute; left: 0; color: var(--accent); font-weight: bold;">Step 2</span>
+            <li style="counter-increment: step; margin-bottom: 16px; position: relative; padding-left: 45px;">
+                <span style="position: absolute; left: 0; top: -2px; color: var(--accent); font-weight: bold; font-size: 18px;">Step 2</span>
                 Review the student information that appears
             </li>
-            <li style="counter-increment: step; position: relative; padding-left: 40px;">
-                <span style="position: absolute; left: 0; color: var(--accent); font-weight: bold;">Step 3</span>
-                Use the <strong>Export as PNG</strong> button to save the report
+            <li style="counter-increment: step; position: relative; padding-left: 45px;">
+                <span style="position: absolute; left: 0; top: -2px; color: var(--accent); font-weight: bold; font-size: 18px;">Step 3</span>
+                Use the Export as PNG button to save the report
             </li>
         </ol>
 
-        <p style="margin-top: 32px; font-size: 14px;">
+        <p style="font-size: 15px;">
             This is a secure, read-only dashboard — no changes are saved.
         </p>
     </div>
     {% endif %}
 
-    <!-- Search only when report loaded -->
+    <!-- Search bar only when report loaded -->
     {% if table_html %}
     <div class="search-bar-wrapper">
         <div class="search-box">
@@ -425,6 +425,7 @@
     {% if table_html %}
     <!-- EXPORT AREA (ONLY THIS IS CAPTURED IN PNG) -->
     <div id="exportArea" data-instructor="{{ instructor }}">
+       
         <div class="export-header">
             <div class="export-title">Student Heads Up Report</div>
             <div class="export-sub" id="exportInstructorLine">
@@ -443,7 +444,6 @@
         <div id="noResults" class="no-results" style="display:none;">No matches found.</div>
     </div>
     {% endif %}
-
 </div>
 
 <script>
