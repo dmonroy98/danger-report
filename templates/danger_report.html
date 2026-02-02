@@ -39,11 +39,21 @@
             align-items: center;
             margin-bottom: 24px;
         }
-        h1 {
-            font-size: 32px;
-            font-weight: 600;
-            margin: 0;
-            letter-spacing: -0.5px;
+        .logo-container {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .logo {
+            max-height: 80px;
+            width: auto;
+            display: block;
+            margin: 0 auto 12px;
+        }
+        .subtitle {
+            color: var(--text-light);
+            font-size: 15px;
+            font-weight: 400;
+            letter-spacing: 0.4px;
         }
         .updated {
             color: var(--text-light);
@@ -84,7 +94,7 @@
             border-radius: var(--radius);
             overflow: hidden;
             max-width: 360px;
-            margin-bottom: 32px;
+            margin: 0 auto 32px;
         }
         .instructor-select select {
             border: none;
@@ -150,7 +160,6 @@
             bottom: 0;
             box-shadow: 0 -6px 10px rgba(0,0,0,0.12);
         }
-        /* Base table */
         .table {
             width: 100%;
             table-layout: auto;
@@ -164,7 +173,6 @@
             white-space: normal;
             word-break: break-word;
         }
-        /* Width fixes */
         table.dataframe th,
         table.dataframe td {
             max-width: 260px !important;
@@ -219,7 +227,6 @@
             color: #c41e3a;
             font-size: 14px;
         }
-        /* Loading shimmer */
         .shimmer-overlay {
             position: fixed;
             inset: 0;
@@ -240,7 +247,6 @@
             from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        /* Export area styling */
         #exportArea {
             padding: 32px;
             background: #ffffff;
@@ -258,40 +264,16 @@
             font-size: 15px;
             color: #555;
         }
-        /* Mobile */
         @media (max-width: 768px) {
             body { padding: 20px 12px; }
             .container { max-width: 100%; }
-            header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 16px;
-                margin-bottom: 16px;
-            }
-            h1 { font-size: 22px; }
-            .controls {
-                width: 100%;
-                flex-direction: column;
-                gap: 10px;
-            }
+            header { flex-direction: column; align-items: flex-start; gap: 16px; }
+            .logo-container { margin-bottom: 32px; }
             .btn { width: 100%; padding: 12px; font-size: 16px; }
-            .search-bar-wrapper {
-                position: sticky;
-                top: 0;
-                padding: 8px 0 10px;
-                margin-bottom: 12px;
-                backdrop-filter: blur(18px);
-            }
-            .table-wrapper {
-                max-height: calc(100vh - 220px);
-            }
-            .table th,
-            .table td {
-                padding: 10px 12px;
-                font-size: 13px;
-            }
+            .search-bar-wrapper { position: sticky; top: 0; padding: 8px 0 10px; margin-bottom: 12px; backdrop-filter: blur(18px); }
+            .table-wrapper { max-height: calc(100vh - 220px); }
+            .table th, .table td { padding: 10px 12px; font-size: 13px; }
         }
-        /* Dark mode */
         @media (prefers-color-scheme: dark) {
             :root {
                 --bg: #000;
@@ -300,40 +282,13 @@
                 --text-light: #a1a1a6;
                 --border: #3a3a3c;
                 --accent: #0a84ff;
-                --accent-dark: #0060df;
             }
-            body {
-                background: radial-gradient(circle at top, #1c1c1e 0, #000 55%);
-            }
-            .table th,
-            .table td {
-                background: #1c1c1e;
-                border-bottom-color: #3a3a3c;
-            }
-            .table th {
-                background: rgba(44,44,46,0.98);
-            }
-            .table tbody tr:hover {
-                background: rgba(10,132,255,0.18);
-            }
-            .search-input {
-                background: rgba(44,44,46,0.9);
-                color: var(--text);
-                border-color: #3a3a3c;
-            }
-            #exportArea {
-                background: #ffffff;
-                color: #000000;
-            }
-        }
-        table.dataframe th[style],
-        table.dataframe td[style] {
-            min-width: 0 !important;
-            max-width: 260px !important;
-            width: auto !important;
-            white-space: normal !important;
-            word-break: break-word !important;
-            overflow-wrap: break-word !important;
+            body { background: radial-gradient(circle at top, #1c1c1e 0, #000 55%); }
+            .table th, .table td { background: #1c1c1e; border-bottom-color: #3a3a3c; }
+            .table th { background: rgba(44,44,46,0.98); }
+            .table tbody tr:hover { background: rgba(10,132,255,0.18); }
+            .search-input { background: rgba(44,44,46,0.9); color: var(--text); border-color: #3a3a3c; }
+            #exportArea { background: #ffffff; color: #000000; }
         }
     </style>
 </head>
@@ -341,14 +296,17 @@
 <div id="shimmerOverlay" class="shimmer-overlay"></div>
 <div class="container">
 
-    <!-- Logo - always visible -->
-    <div style="text-align: center; margin-bottom: 32px;">
+    <!-- Logo + subtitle -->
+    <div class="logo-container">
         <img src="{{ url_for('static', filename='logo.png') }}"
              alt="Student Heads Up Report Logo"
-             style="max-height: 80px; width: auto; display: block; margin: 0 auto;"
+             class="logo"
              onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
         <div style="display:none; color: red; font-weight: bold; font-size: 18px;">
-            Logo missing – check static/logo.png file and deploy
+            Logo missing – check static/logo.png
+        </div>
+        <div class="subtitle">
+            Oak Brook Area • Midway • Lake County
         </div>
     </div>
 
@@ -379,7 +337,7 @@
         </select>
     </div>
 
-    <!-- New intro text - only on landing page -->
+    <!-- New intro - replaces old wording -->
     {% if not table_html %}
     <div style="max-width: 720px; margin: 40px auto; text-align: center; color: var(--text-light); font-size: 16px;">
         <h2 style="color: var(--text); font-size: 32px; margin-bottom: 24px;">Instructor Student Heads-Up</h2>
@@ -423,9 +381,7 @@
     {% endif %}
 
     {% if table_html %}
-    <!-- EXPORT AREA (ONLY THIS IS CAPTURED IN PNG) -->
     <div id="exportArea" data-instructor="{{ instructor }}">
-       
         <div class="export-header">
             <div class="export-title">Student Heads Up Report</div>
             <div class="export-sub" id="exportInstructorLine">
@@ -444,12 +400,10 @@
         <div id="noResults" class="no-results" style="display:none;">No matches found.</div>
     </div>
     {% endif %}
+
 </div>
 
 <script>
-    /* -------------------------------
-       TABLE FEATURES (search, sort)
-    --------------------------------*/
     function initTableFeatures() {
         const table = document.querySelector('.table');
         const wrapper = document.querySelector('.table-wrapper');
@@ -457,7 +411,6 @@
         const noResults = document.getElementById('noResults');
         if (!table || !wrapper || !footer) return;
         const tbody = table.tBodies[0];
-        /* Scroll shadows */
         function updateShadows() {
             const top = wrapper.scrollTop;
             const max = wrapper.scrollHeight - wrapper.clientHeight;
@@ -466,13 +419,11 @@
         }
         wrapper.addEventListener('scroll', updateShadows);
         updateShadows();
-        /* Footer count */
         function updateFooter() {
             const rows = Array.from(tbody.rows);
             const visible = rows.filter(r => r.style.display !== 'none').length;
             footer.textContent = `Showing ${visible} of ${rows.length} entries`;
         }
-        /* Sorting */
         const sortState = {};
         function getCellValue(row, index) {
             const val = row.children[index].textContent.trim();
@@ -504,7 +455,6 @@
             th.classList.add('sortable');
             th.addEventListener('click', () => sortTableByColumn(i));
         });
-        /* Search */
         const searchInput = document.getElementById('searchInput');
         if (searchInput) {
             searchInput.addEventListener('keyup', function () {
@@ -521,9 +471,7 @@
         }
         updateFooter();
     }
-    /* -------------------------------
-       CENTRAL TIME EXPORT TIMESTAMP
-    --------------------------------*/
+
     function getCentralTimeString() {
         const now = new Date();
         return now.toLocaleString("en-US", {
@@ -535,16 +483,12 @@
             minute: "2-digit"
         });
     }
-    /* -------------------------------
-       FILENAME SANITIZER
-    --------------------------------*/
+
     function sanitizeInstructorName(name) {
         if (!name) return "report";
         return name.replace(/[^a-zA-Z0-9]+/g, "_");
     }
-    /* -------------------------------
-       PNG EXPORT - button now labeled "Save Image"
-    --------------------------------*/
+
     function initExport() {
         const exportBtn = document.getElementById('exportBtn');
         const exportArea = document.getElementById('exportArea');
@@ -588,9 +532,7 @@
             });
         });
     }
-    /* -------------------------------
-       INIT ON LOAD
-    --------------------------------*/
+
     window.addEventListener('load', () => {
         const shimmer = document.getElementById('shimmerOverlay');
         if (shimmer) shimmer.style.display = 'none';
