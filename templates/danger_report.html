@@ -164,28 +164,20 @@
             white-space: normal;
             word-break: break-word;
         }
-        /* 🔥 FINAL DESKTOP WIDTH FIX — strongest override */
-        table.dataframe.table.table-striped.table-bordered.table-hover td,
-        table.dataframe.table.table-striped.table-bordered.table-hover th {
-            white-space: normal !important;
-            word-break: break-word !important;
-            max-width: 300px !important;
-        }
-        /* 🔥 Nuclear fix for pandas inline widths */
+        /* Width fixes */
         table.dataframe th,
         table.dataframe td {
-             max-width: 260px !important;
-             min-width: 0 !important;
-             white-space: normal !important;
-             word-break: break-word !important;
-             overflow-wrap: break-word !important;
+            max-width: 260px !important;
+            min-width: 0 !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+            overflow-wrap: break-word !important;
         }
-         /* Remove pandas inline width that forces table to expand */
         table.dataframe.table.table-striped.table-bordered.table-hover th,
         table.dataframe.table.table-striped.table-bordered.table-hover td {
-        width: auto !important;
-        max-width: 300px !important;
-       }
+            width: auto !important;
+            max-width: 300px !important;
+        }
         .table th {
             background: rgba(248,248,248,0.95);
             font-weight: 600;
@@ -210,9 +202,6 @@
         }
         .table tbody tr:hover {
             background: rgba(0,122,255,0.04);
-        }
-        .row-fade-in {
-            animation: rowFadeIn 0.25s ease-out;
         }
         .table-footer {
             margin-top: 12px;
@@ -249,10 +238,6 @@
         }
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes rowFadeIn {
-            from { opacity: 0; transform: translateY(4px); }
             to { opacity: 1; transform: translateY(0); }
         }
         /* Export area styling */
@@ -341,41 +326,48 @@
                 color: #000000;
             }
         }
-/* Override pandas inline widths on the live table */
-table.dataframe th[style],
-table.dataframe td[style] {
-    min-width: 0 !important;
-    max-width: 260px !important;
-    width: auto !important;
-    white-space: normal !important;
-    word-break: break-word !important;
-    overflow-wrap: break-word !important;
-}
+        table.dataframe th[style],
+        table.dataframe td[style] {
+            min-width: 0 !important;
+            max-width: 260px !important;
+            width: auto !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+            overflow-wrap: break-word !important;
+        }
     </style>
 </head>
 <body>
 <div id="shimmerOverlay" class="shimmer-overlay"></div>
 <div class="container">
-<!-- Logo - always visible -->
-<div style="text-align: center; margin-bottom: 24px;">
-    <img src="{{ url_for('static', filename='logo.png') }}"
-         alt="Student Heads Up Report Logo"
-         style="max-height: 80px; width: auto; display: block; margin: 0 auto;"
-         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-    <div style="display:none; color: red; font-weight: bold; font-size: 18px;">
-        Logo missing – check static/logo.png file and deploy
+
+    <!-- Logo - always visible -->
+    <div style="text-align: center; margin-bottom: 24px;">
+        <img src="{{ url_for('static', filename='logo.png') }}"
+             alt="Student Heads Up Report Logo"
+             style="max-height: 80px; width: auto; display: block; margin: 0 auto;"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <div style="display:none; color: red; font-weight: bold; font-size: 18px;">
+            Logo missing – check static/logo.png file and deploy
+        </div>
     </div>
-</div>
+
+    <!-- Back & Export only when report loaded -->
+    {% if table_html %}
     <header>
-              <div class="controls">
+        <div class="controls">
             <button class="btn btn-reset" onclick="window.location.href='/'">← Back</button>
             <button id="exportBtn" class="btn btn-export">Export as PNG</button>
         </div>
     </header>
+    {% endif %}
+
     <div class="updated">Updated: {{ updated_at }}</div>
+
     {% if message %}
         {{ message | safe }}
     {% endif %}
+
     <div class="instructor-select">
         <select onchange="window.location.href='/?instructor=' + encodeURIComponent(this.value)">
             <option value="" disabled {% if not instructor or instructor == "Select an Instructor" %}selected{% endif %}>
@@ -387,7 +379,7 @@ table.dataframe td[style] {
         </select>
     </div>
 
-    <!-- Improved landing intro - replaces old short text -->
+    <!-- Improved landing intro -->
     {% if not table_html %}
     <div style="max-width: 720px; margin: 40px auto; text-align: center; color: var(--text-light); font-size: 15.5px;">
         <h2 style="color: var(--text); font-size: 30px; margin-bottom: 20px;">Instructor Student Heads-Up</h2>
@@ -421,15 +413,18 @@ table.dataframe td[style] {
     </div>
     {% endif %}
 
+    <!-- Search only when report loaded -->
+    {% if table_html %}
     <div class="search-bar-wrapper">
         <div class="search-box">
             <input type="text" id="searchInput" class="search-input" placeholder="Search table…">
         </div>
     </div>
+    {% endif %}
+
     {% if table_html %}
     <!-- EXPORT AREA (ONLY THIS IS CAPTURED IN PNG) -->
     <div id="exportArea" data-instructor="{{ instructor }}">
-       
         <div class="export-header">
             <div class="export-title">Student Heads Up Report</div>
             <div class="export-sub" id="exportInstructorLine">
@@ -448,7 +443,9 @@ table.dataframe td[style] {
         <div id="noResults" class="no-results" style="display:none;">No matches found.</div>
     </div>
     {% endif %}
+
 </div>
+
 <script>
     /* -------------------------------
        TABLE FEATURES (search, sort)
@@ -539,27 +536,24 @@ table.dataframe td[style] {
         });
     }
     /* -------------------------------
-       FILENAME SANITIZER (Option B)
-       Keep capitalization, replace spaces with underscores
+       FILENAME SANITIZER
     --------------------------------*/
     function sanitizeInstructorName(name) {
         if (!name) return "report";
         return name.replace(/[^a-zA-Z0-9]+/g, "_");
     }
     /* -------------------------------
-       PNG EXPORT (mobile-safe)
+       PNG EXPORT
     --------------------------------*/
     function initExport() {
         const exportBtn = document.getElementById('exportBtn');
         const exportArea = document.getElementById('exportArea');
         if (!exportBtn || !exportArea) return;
         exportBtn.addEventListener('click', function () {
-            /* Update timestamp */
             const exportTimestampLine = document.getElementById('exportTimestampLine');
             if (exportTimestampLine) {
                 exportTimestampLine.textContent = "Exported: " + getCentralTimeString();
             }
-            /* Hide UI elements */
             const header = document.querySelector('header');
             const controls = document.querySelector('.controls');
             const searchBar = document.querySelector('.search-bar-wrapper');
@@ -567,10 +561,8 @@ table.dataframe td[style] {
             const shimmer = document.getElementById('shimmerOverlay');
             const toHide = [header, controls, searchBar, instructorSelect, shimmer].filter(Boolean);
             toHide.forEach(el => el.style.visibility = 'hidden');
-            /* Force white background */
             const originalBackground = document.body.style.background;
             document.body.style.background = '#ffffff';
-            /* Capture */
             html2canvas(exportArea, {
                 scale: 2,
                 useCORS: true,
@@ -591,7 +583,6 @@ table.dataframe td[style] {
                     document.body.removeChild(link);
                 });
             }).finally(() => {
-                /* Restore UI */
                 toHide.forEach(el => el.style.visibility = '');
                 document.body.style.background = originalBackground;
             });
