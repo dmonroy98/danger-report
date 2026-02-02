@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Heads Up Report{{ ' – ' + instructor if instructor and instructor != "Select an Instructor" else '' }}</title>
-    <!-- html2canvas for PNG export -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
         :root {
@@ -89,7 +88,7 @@
             border-radius: var(--radius);
             overflow: hidden;
             max-width: 360px;
-            margin: 0 auto 32px;
+            margin: 0 auto 48px;  /* more space below dropdown */
         }
         .instructor-select select {
             border: none;
@@ -318,43 +317,7 @@
         {{ message | safe }}
     {% endif %}
 
-   
-
-    <!-- New intro - replaces old wording -->
-    {% if not table_html %}
-    <div style="max-width: 720px; margin: 40px auto; text-align: center; color: var(--text-light); font-size: 16px;">
-        <h2 style="color: var(--text); font-size: 32px; margin-bottom: 24px;">Instructor Student Heads-Up</h2>
-        
-        <p style="margin-bottom: 24px;">
-            This tool provides a quick overview of students who may need additional attention or follow-up.
-        </p>
-        
-        <p style="margin: 0 0 32px 0; font-weight: 500;">
-            To get started:
-        </p>
-        
-        <ol style="list-style: none; padding: 0; max-width: 520px; margin: 0 auto 40px; text-align: left; counter-reset: step;">
-            <li style="counter-increment: step; margin-bottom: 20px; position: relative; padding-left: 50px; line-height: 1.5;">
-                <span style="position: absolute; left: 0; top: 0; color: var(--accent); font-weight: bold; font-size: 20px;">Step 1  </span>
-                   Select an instructor from the dropdown above
-            </li>
-            <li style="counter-increment: step; margin-bottom: 20px; position: relative; padding-left: 50px; line-height: 1.5;">
-                <span style="position: absolute; left: 0; top: 0; color: var(--accent); font-weight: bold; font-size: 20px;">Step 2  </span>
-                   Review the student information that appears
-            </li>
-            <li style="counter-increment: step; position: relative; padding-left: 50px; line-height: 1.5;">
-                <span style="position: absolute; left: 0; top: 0; color: var(--accent); font-weight: bold; font-size: 20px;">Step 3  </span>
-                   Use the <strong>Save Image</strong> button to save the report
-            </li>
-        </ol>
-
-        <p style="font-size: 15px; margin-top: 20px;">
-            This is a secure, read-only dashboard — no changes are saved.
-        </p>
-    </div>
-    {% endif %}
-
- <div class="instructor-select">
+    <div class="instructor-select">
         <select onchange="window.location.href='/?instructor=' + encodeURIComponent(this.value)">
             <option value="" disabled {% if not instructor or instructor == "Select an Instructor" %}selected{% endif %}>
                 Select Instructor
@@ -364,6 +327,40 @@
             {% endfor %}
         </select>
     </div>
+
+    <!-- Improved landing intro with better spacing -->
+    {% if not table_html %}
+    <div style="max-width: 720px; margin: 48px auto; text-align: center; color: var(--text-light); font-size: 16px;">
+        <h2 style="color: var(--text); font-size: 32px; margin-bottom: 28px;">Instructor Student Heads-Up</h2>
+        
+        <p style="margin-bottom: 28px;">
+            This tool provides a quick overview of students who may need additional attention or follow-up.
+        </p>
+        
+        <p style="margin: 0 0 36px 0; font-weight: 500;">
+            To get started:
+        </p>
+        
+        <ol style="list-style: none; padding: 0; max-width: 560px; margin: 0 auto 48px; text-align: left; counter-reset: step;">
+            <li style="counter-increment: step; margin-bottom: 28px; position: relative; padding-left: 70px; min-height: 32px; line-height: 1.6;">
+                <span style="position: absolute; left: 0; top: 0; color: var(--accent); font-weight: bold; font-size: 22px; line-height: 1;">Step 1</span>
+                Select an instructor from the dropdown above
+            </li>
+            <li style="counter-increment: step; margin-bottom: 28px; position: relative; padding-left: 70px; min-height: 32px; line-height: 1.6;">
+                <span style="position: absolute; left: 0; top: 0; color: var(--accent); font-weight: bold; font-size: 22px; line-height: 1;">Step 2</span>
+                Review the student information that appears
+            </li>
+            <li style="counter-increment: step; position: relative; padding-left: 70px; min-height: 32px; line-height: 1.6;">
+                <span style="position: absolute; left: 0; top: 0; color: var(--accent); font-weight: bold; font-size: 22px; line-height: 1;">Step 3</span>
+                Use the <strong>Save Image</strong> button to save the report
+            </li>
+        </ol>
+
+        <p style="font-size: 15px; margin-top: 24px;">
+            This is a secure, read-only dashboard — no changes are saved.
+        </p>
+    </div>
+    {% endif %}
 
     <!-- Search bar only when report loaded -->
     {% if table_html %}
