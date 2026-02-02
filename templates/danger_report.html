@@ -386,6 +386,41 @@ table.dataframe td[style] {
             {% endfor %}
         </select>
     </div>
+
+    <!-- === New landing intro (Option 3) === -->
+    {% if not table_html %}
+    <div style="max-width: 720px; margin: 40px auto; text-align: center; color: var(--text-light); font-size: 15.5px;">
+        <h2 style="color: var(--text); font-size: 30px; margin-bottom: 20px;">Instructor Student Heads-Up</h2>
+        
+        <p style="margin-bottom: 20px;">
+            This tool provides a quick overview of students who may need additional attention or follow-up.
+        </p>
+        
+        <p style="margin: 0 0 28px 0;">
+            To get started:
+        </p>
+        
+        <ol style="list-style: none; padding: 0; counter-reset: step; max-width: 480px; margin: 0 auto; text-align: left;">
+            <li style="counter-increment: step; margin-bottom: 12px; position: relative; padding-left: 40px;">
+                <span style="position: absolute; left: 0; color: var(--accent); font-weight: bold;">Step 1</span>
+                Select an instructor from the dropdown above
+            </li>
+            <li style="counter-increment: step; margin-bottom: 12px; position: relative; padding-left: 40px;">
+                <span style="position: absolute; left: 0; color: var(--accent); font-weight: bold;">Step 2</span>
+                Review the student information that appears
+            </li>
+            <li style="counter-increment: step; position: relative; padding-left: 40px;">
+                <span style="position: absolute; left: 0; color: var(--accent); font-weight: bold;">Step 3</span>
+                Use the <strong>Export as PNG</strong> button to save the report
+            </li>
+        </ol>
+
+        <p style="margin-top: 32px; font-size: 14px;">
+            This is a secure, read-only dashboard — no changes are saved.
+        </p>
+    </div>
+    {% endif %}
+
     <div class="search-bar-wrapper">
         <div class="search-box">
             <input type="text" id="searchInput" class="search-input" placeholder="Search table…">
@@ -492,4 +527,85 @@ table.dataframe td[style] {
     /* -------------------------------
        CENTRAL TIME EXPORT TIMESTAMP
     --------------------------------*/
-    function getCentral
+    function getCentralTimeString() {
+        const now = new Date();
+        return now.toLocaleString("en-US", {
+            timeZone: "America/Chicago",
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit"
+        });
+    }
+    /* -------------------------------
+       FILENAME SANITIZER (Option B)
+       Keep capitalization, replace spaces with underscores
+    --------------------------------*/
+    function sanitizeInstructorName(name) {
+        if (!name) return "report";
+        return name.replace(/[^a-zA-Z0-9]+/g, "_");
+    }
+    /* -------------------------------
+       PNG EXPORT (mobile-safe)
+    --------------------------------*/
+    function initExport() {
+        const exportBtn = document.getElementById('exportBtn');
+        const exportArea = document.getElementById('exportArea');
+        if (!exportBtn || !exportArea) return;
+        exportBtn.addEventListener('click', function () {
+            /* Update timestamp */
+            const exportTimestampLine = document.getElementById('exportTimestampLine');
+            if (exportTimestampLine) {
+                exportTimestampLine.textContent = "Exported: " + getCentralTimeString();
+            }
+            /* Hide UI elements */
+            const header = document.querySelector('header');
+            const controls = document.querySelector('.controls');
+            const searchBar = document.querySelector('.search-bar-wrapper');
+            const instructorSelect = document.querySelector('.instructor-select');
+            const shimmer = document.getElementById('shimmerOverlay');
+            const toHide = [header, controls, searchBar, instructorSelect, shimmer].filter(Boolean);
+            toHide.forEach(el => el.style.visibility = 'hidden');
+            /* Force white background */
+            const originalBackground = document.body.style.background;
+            document.body.style.background = '#ffffff';
+            /* Capture */
+            html2canvas(exportArea, {
+                scale: 2,
+                useCORS: true,
+                scrollX: 0,
+                scrollY: -window.scrollY,
+                windowWidth: document.documentElement.offsetWidth,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
+                canvas.toBlob(function (blob) {
+                    const link = document.createElement("a");
+                    const instructor = exportArea.getAttribute('data-instructor') || '';
+                    const safeInstructor = sanitizeInstructorName(instructor);
+                    const filename = `${safeInstructor}_heads_up_report.png`;
+                    link.download = filename;
+                    link.href = URL.createObjectURL(blob);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
+            }).finally(() => {
+                /* Restore UI */
+                toHide.forEach(el => el.style.visibility = '');
+                document.body.style.background = originalBackground;
+            });
+        });
+    }
+    /* -------------------------------
+       INIT ON LOAD
+    --------------------------------*/
+    window.addEventListener('load', () => {
+        const shimmer = document.getElementById('shimmerOverlay');
+        if (shimmer) shimmer.style.display = 'none';
+        initTableFeatures();
+        initExport();
+    });
+</script>
+</body>
+</html>
