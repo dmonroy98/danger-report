@@ -55,11 +55,6 @@
             font-weight: 400;
             letter-spacing: 0.4px;
         }
-        .updated {
-            color: var(--text-light);
-            font-size: 15px;
-            margin: 8px 0 20px 0;
-        }
         .controls {
             display: flex;
             gap: 12px;
@@ -140,7 +135,6 @@
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
         }
-        /* Scroll shadows */
         .table-wrapper::before,
         .table-wrapper::after {
             content: "";
@@ -319,8 +313,6 @@
         </div>
     </header>
     {% endif %}
-
-    <div class="updated">Updated: {{ updated_at }}</div>
 
     {% if message %}
         {{ message | safe }}

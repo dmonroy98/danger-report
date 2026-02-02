@@ -162,8 +162,8 @@ def danger_report(path=''):
         message = (
             '<div style="padding:40px;text-align:center;background:#fafafa;'
             'border-radius:12px;max-width:700px;margin:40px auto;">'
-            '<h2>Select an Instructor</h2>'
-            '<p>Use the dropdown above to view their report.</p>'
+            '<h2>HEADS UP REPORT</h2>'
+            '<p></p>'
             '</div>'
         )
     from zoneinfo import ZoneInfo
