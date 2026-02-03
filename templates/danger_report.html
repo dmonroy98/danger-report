@@ -74,7 +74,7 @@
             -webkit-backdrop-filter: blur(16px);
             border-bottom: 1px solid var(--frost-border);
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            padding: 12px 16px; /* slightly reduced vertical padding */
+            padding: 12px 16px;
         }
         .header-inner {
             display: flex;
@@ -101,6 +101,75 @@
             display: block;
             margin: 0 auto 10px;
             object-fit: contain;
+        }
+
+        /* New: Flex row for dropdown + search */
+        .controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        .instructor-select {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            flex: 1;
+            max-width: 360px;
+            min-width: 280px;
+        }
+        .instructor-select select {
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            padding: 14px 18px;
+            width: 100%;
+            color: var(--text);
+        }
+        .search-bar-wrapper {
+            flex: 1;
+            max-width: 420px;
+            min-width: 280px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 14px 18px;
+            font-size: 15px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: white;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0,122,255,0.15);
+        }
+
+        @media (max-width: 768px) {
+            .controls-row {
+                flex-direction: column;
+                gap: 16px;
+            }
+            .instructor-select, .search-bar-wrapper {
+                width: 100%;
+                max-width: none;
+                min-width: 0;
+            }
+            body { padding: 0 12px; }
+            .container { padding: 16px 12px; }
+            .logo { max-height: 42px; margin-bottom: 8px; }
+            .logo-container { margin-bottom: 20px; }
+            .frosted-header { padding: 10px 12px; }
+            .frosted-header h1 { font-size: 18px; }
+            .header-inner { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .controls { width: 100%; justify-content: space-between; gap: 8px; }
+            .btn { font-size: 14px; padding: 8px 14px; min-width: 80px; }
+            .search-input { padding: 12px 16px; font-size: 14px; }
+            .table th, .table td { padding: 10px 12px; font-size: 13px; }
         }
 
         .table-card {
@@ -150,16 +219,9 @@
             border: none;
             white-space: nowrap;
         }
-        .btn-reset {
-            background: white;
-            border: 1px solid var(--border);
-            color: var(--text);
-        }
+        .btn-reset { background: white; border: 1px solid var(--border); color: var(--text); }
         .btn-reset:hover { background: #f0f0f0; }
-        .btn-save {
-            background: var(--accent);
-            color: white;
-        }
+        .btn-save { background: var(--accent); color: white; }
         .btn-save:hover { background: var(--accent-dark); }
 
         .controls {
@@ -167,43 +229,6 @@
             gap: 12px;
             flex-wrap: wrap;
             justify-content: flex-end;
-        }
-
-        .instructor-select {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            overflow: hidden;
-            max-width: 360px;
-            margin: 0 auto 32px;
-        }
-        .instructor-select select {
-            border: none;
-            background: transparent;
-            font-size: 15px;
-            padding: 14px 18px;
-            width: 100%;
-            color: var(--text);
-        }
-
-        .search-bar-wrapper {
-            position: relative;
-            z-index: 5;
-            margin-bottom: 24px;
-        }
-        .search-input {
-            width: 100%;
-            padding: 14px 18px;
-            font-size: 15px;
-            border: 1px solid var(--border);
-            border-radius: 999px;
-            background: white;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .search-input:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(0,122,255,0.15);
         }
 
         .table-wrapper {
@@ -230,9 +255,14 @@
         }
 
         .table-footer {
-            margin-top: 12px;
-            font-size: 13px;
-            color: var(--text-light);
+            margin-top: 16px;
+            padding: 12px 18px;
+            background: var(--card);
+            border-radius: 0 0 var(--radius) var(--radius);
+            border-top: 1px solid var(--border);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -269,32 +299,6 @@
             animation: spin 1s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        @media (max-width: 768px) {
-            body { padding: 0 12px; }
-            .container { padding: 16px 12px; }
-            .logo { max-height: 42px; margin-bottom: 8px; }
-            .logo-container { margin-bottom: 20px; }
-            .frosted-header { padding: 10px 12px; }
-            .frosted-header h1 { font-size: 18px; }
-            .header-inner {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-            .controls {
-                width: 100%;
-                justify-content: space-between;
-                gap: 8px;
-            }
-            .btn {
-                font-size: 14px;
-                padding: 8px 14px;     /* smaller on mobile */
-                min-width: 80px;        /* prevents them from becoming too tiny */
-            }
-            .search-input { padding: 12px 16px; font-size: 14px; }
-            .table th, .table td { padding: 10px 12px; font-size: 13px; }
-        }
 
         @media (prefers-color-scheme: dark) {
             body { background: radial-gradient(circle at top, #1c1c1e 0, #000 55%); }
@@ -335,19 +339,37 @@
         </div>
     </div>
 
-    <div class="instructor-select">
-        <select onchange="window.location.href='/?instructor=' + encodeURIComponent(this.value)">
-            <option value="" disabled {% if not instructor or instructor == "Select an Instructor" %}selected{% endif %}>
-                Select Instructor
-            </option>
-            {% for inst in instructors %}
-                <option value="{{ inst }}" {% if inst == instructor %}selected{% endif %}>{{ inst }}</option>
-            {% endfor %}
-        </select>
+    {% if table_html %}
+    <div class="controls-row">
+        <div class="instructor-select">
+            <select onchange="window.location.href='/?instructor=' + encodeURIComponent(this.value)">
+                <option value="" disabled {% if not instructor or instructor == "Select an Instructor" %}selected{% endif %}>
+                    Select Instructor
+                </option>
+                {% for inst in instructors %}
+                    <option value="{{ inst }}" {% if inst == instructor %}selected{% endif %}>{{ inst }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="search-bar-wrapper">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search table…">
+        </div>
+    </div>
+    {% else %}
+    <div class="controls-row" style="justify-content: center;">
+        <div class="instructor-select">
+            <select onchange="window.location.href='/?instructor=' + encodeURIComponent(this.value)">
+                <option value="" disabled {% if not instructor or instructor == "Select an Instructor" %}selected{% endif %}>
+                    Select Instructor
+                </option>
+                {% for inst in instructors %}
+                    <option value="{{ inst }}" {% if inst == instructor %}selected{% endif %}>{{ inst }}</option>
+                {% endfor %}
+            </select>
+        </div>
     </div>
 
-    {% if not table_html %}
-    <!-- landing content remains unchanged -->
     <div style="max-width: 720px; margin: 48px auto; text-align: center; color: var(--text-light); font-size: 16px;">
         <h2 style="color: var(--text); font-size: 32px; margin-bottom: 28px;">Instructor Student Heads-Up</h2>
         <p style="margin-bottom: 28px;">
@@ -375,12 +397,6 @@
     {% endif %}
 
     {% if table_html %}
-    <div class="search-bar-wrapper">
-        <div class="search-box" style="max-width: 420px; margin: 0 auto;">
-            <input type="text" id="searchInput" class="search-input" placeholder="Search table…">
-        </div>
-    </div>
-
     <div id="exportArea" data-instructor="{{ instructor }}">
         <div class="export-header" style="text-align: center; margin-bottom: 24px;">
             <div class="export-title" style="font-size: 22px; font-weight: 600;">Student Heads Up Report</div>
@@ -392,7 +408,12 @@
                 {{ table_html | safe }}
             </div>
         </div>
-        <div id="tableFooter" class="table-footer"></div>
+
+        <!-- Total rows footer -->
+        <div id="tableFooter" class="table-footer">
+            <!-- Filled dynamically by JS -->
+        </div>
+
         <div id="noResults" class="no-results" style="display:none;">No matches found.</div>
     </div>
     {% endif %}
@@ -433,7 +454,7 @@ window.addEventListener('touchend', () => {
     pullDist = 0;
 });
 
-// Excel export (unchanged)
+// Excel export
 function exportToExcel() {
     const table = document.querySelector('.table');
     if (!table) return alert("No table to export.");
@@ -444,21 +465,20 @@ function exportToExcel() {
 }
 document.getElementById('exportExcelBtn')?.addEventListener('click', exportToExcel);
 
-// PNG export + table init (keep your original logic here if customized)
+// PNG export (simplified version – adapt if you have more logic)
 function initExport() {
     const exportPngBtn = document.getElementById('exportPngBtn');
     const exportArea = document.getElementById('exportArea');
     const exportTimestampLine = document.getElementById('exportTimestampLine');
     if (!exportPngBtn || !exportArea) return;
 
-    exportPngBtn.addEventListener('click', function () {
+    exportPngBtn.addEventListener('click', () => {
         const timestamp = "Exported: " + new Date().toLocaleString("en-US", { timeZone: "America/Chicago" });
         exportTimestampLine.textContent = timestamp;
 
         const toHide = [
             document.querySelector('header'),
-            document.querySelector('.search-bar-wrapper'),
-            document.querySelector('.instructor-select')
+            document.querySelector('.controls-row'),
         ].filter(Boolean);
 
         toHide.forEach(el => el.style.visibility = 'hidden');
@@ -485,8 +505,58 @@ function initExport() {
     });
 }
 
+// Table features: sorting, search, footer with totals
+function initTableFeatures() {
+    const table = document.querySelector('.table');
+    if (!table) return;
+
+    const tbody = table.tBodies[0];
+    const footer = document.getElementById('tableFooter');
+    const noResults = document.getElementById('noResults');
+
+    function updateFooter() {
+        const rows = Array.from(tbody.rows);
+        const total = rows.length;
+        const visible = rows.filter(r => r.style.display !== 'none').length;
+
+        if (footer) {
+            footer.innerHTML = `
+                <span>Total rows: ${total}</span>
+                <span>Showing: ${visible} ${visible === 1 ? 'entry' : 'entries'}</span>
+            `;
+        }
+
+        if (noResults) {
+            noResults.style.display = visible === 0 ? 'block' : 'none';
+        }
+    }
+
+    // Search
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            const filter = searchInput.value.toLowerCase();
+            Array.from(tbody.rows).forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
+            });
+            updateFooter();
+        });
+    }
+
+    // Basic sorting (expand if you have custom sort logic)
+    document.querySelectorAll('th').forEach((th, index) => {
+        th.style.cursor = 'pointer';
+        th.addEventListener('click', () => {
+            // Your sort logic here if needed...
+            updateFooter(); // refresh count after sort
+        });
+    });
+
+    updateFooter(); // initial call
+}
+
 window.addEventListener('load', () => {
-    // Add your initTableFeatures() here if you have custom sorting/search
+    initTableFeatures();
     initExport();
 });
 </script>
