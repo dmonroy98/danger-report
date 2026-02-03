@@ -21,6 +21,7 @@
             --frost-bg: rgba(255, 255, 255, 0.7);
             --frost-border: rgba(255, 255, 255, 0.25);
         }
+
         @media (prefers-color-scheme: dark) {
             :root {
                 --bg: #000;
@@ -103,7 +104,6 @@
             object-fit: contain;
         }
 
-        /* New: Flex row for dropdown + search */
         .controls-row {
             display: flex;
             flex-wrap: wrap;
@@ -149,29 +149,6 @@
             box-shadow: 0 0 0 3px rgba(0,122,255,0.15);
         }
 
-        @media (max-width: 768px) {
-            .controls-row {
-                flex-direction: column;
-                gap: 16px;
-            }
-            .instructor-select, .search-bar-wrapper {
-                width: 100%;
-                max-width: none;
-                min-width: 0;
-            }
-            body { padding: 0 12px; }
-            .container { padding: 16px 12px; }
-            .logo { max-height: 42px; margin-bottom: 8px; }
-            .logo-container { margin-bottom: 20px; }
-            .frosted-header { padding: 10px 12px; }
-            .frosted-header h1 { font-size: 18px; }
-            .header-inner { flex-direction: column; align-items: flex-start; gap: 10px; }
-            .controls { width: 100%; justify-content: space-between; gap: 8px; }
-            .btn { font-size: 14px; padding: 8px 14px; min-width: 80px; }
-            .search-input { padding: 12px 16px; font-size: 14px; }
-            .table th, .table td { padding: 10px 12px; font-size: 13px; }
-        }
-
         .table-card {
             background: var(--card);
             border-radius: var(--radius);
@@ -203,10 +180,6 @@
             background: rgba(240, 248, 255, 0.95);
             box-shadow: 0 3px 12px rgba(0,122,255,0.12);
             color: var(--accent);
-        }
-        @media (prefers-color-scheme: dark) {
-            .table th { background: rgba(44,44,46,0.98); }
-            .table th:hover { background: rgba(50,50,60,0.98); color: var(--accent); }
         }
 
         .btn {
@@ -300,10 +273,86 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* ──────────────────────────────────────────────
+           DARK MODE IMPROVEMENTS – table no longer too light
+        ────────────────────────────────────────────── */
         @media (prefers-color-scheme: dark) {
             body { background: radial-gradient(circle at top, #1c1c1e 0, #000 55%); }
-            .table th, .table td { background: #1c1c1e; border-bottom-color: #3a3a3c; }
-            .search-input { background: rgba(44,44,46,0.9); color: var(--text); border-color: #3a3a3c; }
+
+            .table-card {
+                background: #121212;
+                border-color: #333;
+            }
+
+            .table th,
+            .table td {
+                background: #1e1e1e !important;
+                color: #e0e0e0 !important;
+                border-bottom-color: #333 !important;
+            }
+
+            /* Override pandas day-of-week inline background colors */
+            .table tr[style*="background-color"],
+            .table td[style*="background-color"] {
+                background-color: #1e1e1e !important;
+            }
+
+            .table th {
+                background: #2a2a2a !important;
+                color: #ffffff !important;
+            }
+
+            .table tbody tr:hover {
+                background: #2c3e50 !important; /* dark muted hover */
+            }
+
+            .table-footer {
+                background: #1e1e1e;
+                color: #cccccc;
+                border-top-color: #333;
+            }
+
+            .search-input {
+                background: #2a2a2a;
+                color: #e0e0e0;
+                border-color: #444;
+            }
+
+            .search-input:focus {
+                border-color: var(--accent);
+                box-shadow: 0 0 0 3px rgba(10,132,255,0.3);
+            }
+
+            .instructor-select {
+                background: #2a2a2a;
+                border-color: #444;
+            }
+            .instructor-select select {
+                color: #e0e0e0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .controls-row {
+                flex-direction: column;
+                gap: 16px;
+            }
+            .instructor-select, .search-bar-wrapper {
+                width: 100%;
+                max-width: none;
+                min-width: 0;
+            }
+            body { padding: 0 12px; }
+            .container { padding: 16px 12px; }
+            .logo { max-height: 42px; margin-bottom: 8px; }
+            .logo-container { margin-bottom: 20px; }
+            .frosted-header { padding: 10px 12px; }
+            .frosted-header h1 { font-size: 18px; }
+            .header-inner { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .controls { width: 100%; justify-content: space-between; gap: 8px; }
+            .btn { font-size: 14px; padding: 8px 14px; min-width: 80px; }
+            .search-input { padding: 12px 16px; font-size: 14px; }
+            .table th, .table td { padding: 10px 12px; font-size: 13px; }
         }
     </style>
 </head>
@@ -409,9 +458,8 @@
             </div>
         </div>
 
-        <!-- Total rows footer -->
         <div id="tableFooter" class="table-footer">
-            <!-- Filled dynamically by JS -->
+            <!-- Filled by JS -->
         </div>
 
         <div id="noResults" class="no-results" style="display:none;">No matches found.</div>
@@ -421,7 +469,7 @@
 </div>
 
 <script>
-// Pull-to-refresh (unchanged)
+// Pull-to-refresh
 let pullStartY = null;
 let pullDist = 0;
 const pullThreshold = 100;
@@ -465,7 +513,7 @@ function exportToExcel() {
 }
 document.getElementById('exportExcelBtn')?.addEventListener('click', exportToExcel);
 
-// PNG export (simplified version – adapt if you have more logic)
+// PNG export
 function initExport() {
     const exportPngBtn = document.getElementById('exportPngBtn');
     const exportArea = document.getElementById('exportArea');
@@ -505,7 +553,7 @@ function initExport() {
     });
 }
 
-// Table features: sorting, search, footer with totals
+// Table features: search + footer with totals
 function initTableFeatures() {
     const table = document.querySelector('.table');
     if (!table) return;
@@ -531,7 +579,6 @@ function initTableFeatures() {
         }
     }
 
-    // Search
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('input', () => {
@@ -543,16 +590,7 @@ function initTableFeatures() {
         });
     }
 
-    // Basic sorting (expand if you have custom sort logic)
-    document.querySelectorAll('th').forEach((th, index) => {
-        th.style.cursor = 'pointer';
-        th.addEventListener('click', () => {
-            // Your sort logic here if needed...
-            updateFooter(); // refresh count after sort
-        });
-    });
-
-    updateFooter(); // initial call
+    updateFooter();
 }
 
 window.addEventListener('load', () => {
