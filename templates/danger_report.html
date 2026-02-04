@@ -255,7 +255,6 @@
             animation: spin 1s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-
         /* ──────────────────────────────────────────────
            DARK MODE IMPROVEMENTS – table no longer too light
         ────────────────────────────────────────────── */
@@ -303,16 +302,15 @@
             }
             .instructor-select select,
             .instructor-select select option {
-                color: #ffffff !important;           /* ← white text for dropdown items */
-                background: #2a2a2a !important;      /* dark background */
+                color: #ffffff !important;
+                background: #2a2a2a !important;
             }
             .instructor-select select option:checked,
             .instructor-select select option:hover {
-                background: #3a3a3c !important;      /* slightly lighter when selected/hovered */
+                background: #3a3a3c !important;
                 color: #ffffff !important;
             }
         }
-
         @media (max-width: 768px) {
             .controls-row {
                 flex-direction: column;
@@ -335,13 +333,28 @@
             .search-input { padding: 12px 16px; font-size: 14px; }
             .table th, .table td { padding: 10px 12px; font-size: 13px; }
         }
+        /* Staging banner */
+        .staging-banner {
+            background: #ff9800;
+            color: white;
+            text-align: center;
+            padding: 12px;
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 16px;
+        }
     </style>
 </head>
 <body>
 <div id="pullLoader"><div class="pull-spinner"></div></div>
+
+<!-- Staging banner – only shows on stage URLs -->
+<div class="staging-banner">
+    STAGE / TEST ENVIRONMENT – NOT PRODUCTION
+</div>
+
 <header class="frosted-header">
     <div class="header-inner">
-	<h1>Stage Environment</h1>
         <h1>Student Heads Up Report</h1>
         {% if table_html %}
         <div class="controls">
@@ -352,6 +365,7 @@
         {% endif %}
     </div>
 </header>
+
 <div class="container">
     <div class="logo-container">
         <img src="{{ url_for('static', filename='logo.png') }}"
@@ -365,6 +379,7 @@
             Oak Brook Area • Midway • Lake County
         </div>
     </div>
+
     {% if table_html %}
     <div class="controls-row">
         <div class="instructor-select">
@@ -394,6 +409,7 @@
             </select>
         </div>
     </div>
+
     <div style="max-width: 720px; margin: 48px auto; text-align: center; color: var(--text-light); font-size: 16px;">
         <h2 style="color: var(--text); font-size: 32px; margin-bottom: 28px;">Instructor Student Heads-Up</h2>
         <p style="margin-bottom: 28px;">
@@ -419,6 +435,7 @@
         </p>
     </div>
     {% endif %}
+
     {% if table_html %}
     <div id="exportArea" data-instructor="{{ instructor }}">
         <div class="export-header" style="text-align: center; margin-bottom: 24px;">
@@ -438,6 +455,7 @@
     </div>
     {% endif %}
 </div>
+
 <script>
 // Pull-to-refresh
 let pullStartY = null;
