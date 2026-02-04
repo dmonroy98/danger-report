@@ -15,7 +15,6 @@ app = Flask(__name__)
 # ───────────────────────────────────────────────────────────────
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 excel_files = glob.glob(os.path.join(DATA_DIR, '*.xls*'))
-
 if not excel_files:
     EXCEL_PATH = None
     INSTRUCTORS = ["No Excel file found in /data"]
@@ -24,7 +23,6 @@ else:
     excel_files.sort(key=lambda f: (not f.lower().endswith(('.xlsx', '.xlsm')), f))
     EXCEL_PATH = excel_files[0]
     print(f"Using Excel file: {EXCEL_PATH}")
-
     try:
         excel_file = pd.ExcelFile(EXCEL_PATH)
         raw_sheets = excel_file.sheet_names
@@ -72,7 +70,6 @@ def get_table_html(instructor: str) -> str:
     try:
         if instructor not in INSTRUCTORS:
             return f'<p style="color:red;">Instructor "{instructor}" not found.</p>'
-
         print(f"[DEBUG] Loading sheet: {instructor}")
         df = pd.read_excel(EXCEL_PATH, sheet_name=instructor, engine='openpyxl')
         df = df.fillna('')
@@ -80,13 +77,50 @@ def get_table_html(instructor: str) -> str:
         # Normalize column names
         df.columns = df.columns.str.strip().str.replace(r'\s+', ' ', regex=True)
 
-        # Sorting by day + class name
+        # Improved sorting: by Day → Time → Class Name
         if "Class Name" in df.columns:
-            df["sort_day"] = df["Class Name"].apply(extract_day_code)
-            df = df.sort_values(by=["sort_day", "Class Name"], ascending=[True, True])
-            df = df.drop(columns=["sort_day"], errors="ignore")
+            def parse_schedule(class_name):
+                if pd.isna(class_name):
+                    return (99, 9999)  # fallback: very late
 
-        # Day-based row background colors
+                text = str(class_name).strip()
+                # Extract day (last 1-3 letters)
+                day_match = re.search(r'\b([A-Za-z]{1,3})$', text, re.IGNORECASE)
+                day_code = day_match.group(1).upper() if day_match else ""
+                day_num = DAY_ORDER.get(day_code, 99)
+
+                # Extract time (e.g. 10:45A, 9:15P, 12:30P)
+                time_match = re.search(r'(\d{1,2}):(\d{2})([AP])', text, re.IGNORECASE)
+                if not time_match:
+                    return (day_num, 9999)
+
+                hour, minute, ampm = time_match.groups()
+                h = int(hour)
+                m = int(minute)
+                if ampm.upper() == 'P' and h != 12:
+                    h += 12
+                if ampm.upper() == 'A' and h == 12:
+                    h = 0
+
+                minutes_since_midnight = h * 60 + m
+                return (day_num, minutes_since_midnight)
+
+            # Apply parsing → new columns for sorting
+            df[['sort_day', 'sort_time']] = pd.DataFrame(
+                df["Class Name"].apply(parse_schedule).tolist(),
+                index=df.index
+            )
+
+            # Sort: day → time → class name (you can add "Student Name" here too)
+            df = df.sort_values(
+                by=["sort_day", "sort_time", "Class Name"],
+                ascending=[True, True, True]
+            )
+
+            # Clean up temporary sort columns
+            df = df.drop(columns=["sort_day", "sort_time"], errors="ignore")
+
+        # Day-based row background colors (unchanged)
         def row_background(row):
             day_num = extract_day_code(row.get("Class Name", ""))
             colors = {
@@ -146,30 +180,23 @@ def get_table_html(instructor: str) -> str:
 @app.route('/download-excel')
 def download_excel():
     instructor = request.args.get("instructor", "").strip()
-
     if not instructor or instructor not in INSTRUCTORS or EXCEL_PATH is None:
         return "Invalid instructor or no data available", 400
-
     try:
         df = pd.read_excel(EXCEL_PATH, sheet_name=instructor, engine='openpyxl')
         df = df.fillna('')
-
         output = BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
             df.to_excel(writer, index=False, sheet_name=instructor[:31])  # Excel sheet name limit
-
         output.seek(0)
-
         safe_name = re.sub(r'[^a-zA-Z0-9_-]', '_', instructor)
         filename = f"{safe_name}_student_heads_up_report.xlsx"
-
         return send_file(
             output,
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             as_attachment=True,
             download_name=filename
         )
-
     except Exception as e:
         traceback.print_exc()
         return f"Error generating Excel file: {str(e)}", 500
@@ -182,11 +209,9 @@ def download_excel():
 def danger_report(path=''):
     instructor_param = request.args.get("instructor", "").strip()
     print(f"[DEBUG] Request instructor={instructor_param}")
-
     instructor = None
     table_html = None
     message = None
-
     if instructor_param and instructor_param in INSTRUCTORS:
         instructor = instructor_param
         table_html = get_table_html(instructor)
@@ -198,10 +223,8 @@ def danger_report(path=''):
             '<p>Select an instructor to view student information.</p>'
             '</div>'
         )
-
     from zoneinfo import ZoneInfo
     updated_at = datetime.now(ZoneInfo("America/Chicago")).strftime("%Y-%m-%d %H:%M:%S %Z")
-
     return render_template(
         "danger_report.html",
         instructor=instructor or "Select an Instructor",
