@@ -1,0 +1,7 @@
+# Danger Report App (Stage)
+
+## Cómo correr localmente
+1. cd danger-report
+2. source venv/Scripts/activate
+3. pip install -r requirements.txt
+4. python app.py
