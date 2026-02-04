@@ -6,7 +6,6 @@
     <title>Student Heads Up Report{{ ' – ' + instructor if instructor and instructor != "Select an Instructor" else '' }}</title>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
     <style>
         :root {
             --bg: #f5f5f7;
@@ -21,7 +20,6 @@
             --frost-bg: rgba(255, 255, 255, 0.7);
             --frost-border: rgba(255, 255, 255, 0.25);
         }
-
         @media (prefers-color-scheme: dark) {
             :root {
                 --bg: #000;
@@ -34,7 +32,6 @@
                 --frost-border: rgba(255, 255, 255, 0.12);
             }
         }
-
         body {
             background: var(--bg);
             color: var(--text);
@@ -46,7 +43,6 @@
             position: relative;
             overflow-x: hidden;
         }
-
         body::before {
             content: "";
             position: fixed;
@@ -59,13 +55,11 @@
         @media (prefers-reduced-motion: reduce) {
             body::before { transform: none; }
         }
-
         .container {
             max-width: 1280px;
             margin: 0 auto;
             padding: 24px 20px;
         }
-
         .frosted-header {
             position: sticky;
             top: 0;
@@ -89,7 +83,6 @@
             font-size: 20px;
             font-weight: 600;
         }
-
         .logo-container {
             text-align: center;
             margin-bottom: 24px;
@@ -103,7 +96,6 @@
             margin: 0 auto 10px;
             object-fit: contain;
         }
-
         .controls-row {
             display: flex;
             flex-wrap: wrap;
@@ -148,7 +140,6 @@
             border-color: var(--accent);
             box-shadow: 0 0 0 3px rgba(0,122,255,0.15);
         }
-
         .table-card {
             background: var(--card);
             border-radius: var(--radius);
@@ -159,11 +150,9 @@
             transform: translateY(20px);
             animation: fadeInUp 0.7s ease-out 0.4s forwards;
         }
-
         @keyframes fadeInUp {
             to { opacity: 1; transform: translateY(0); }
         }
-
         .table th {
             background: rgba(248,248,248,0.95);
             font-weight: 600;
@@ -181,7 +170,6 @@
             box-shadow: 0 3px 12px rgba(0,122,255,0.12);
             color: var(--accent);
         }
-
         .btn {
             font-size: 15px;
             font-weight: 500;
@@ -196,14 +184,12 @@
         .btn-reset:hover { background: #f0f0f0; }
         .btn-save { background: var(--accent); color: white; }
         .btn-save:hover { background: var(--accent-dark); }
-
         .controls {
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
             justify-content: flex-end;
         }
-
         .table-wrapper {
             position: relative;
             max-height: 70vh;
@@ -226,7 +212,6 @@
         .table tbody tr:hover {
             background: rgba(0,122,255,0.04);
         }
-
         .table-footer {
             margin-top: 16px;
             padding: 12px 18px;
@@ -240,7 +225,6 @@
             justify-content: space-between;
             align-items: center;
         }
-
         .no-results {
             margin-top: 16px;
             padding: 16px 18px;
@@ -249,7 +233,6 @@
             color: #c41e3a;
             font-size: 14px;
         }
-
         #pullLoader {
             position: fixed;
             top: -70px;
@@ -278,57 +261,55 @@
         ────────────────────────────────────────────── */
         @media (prefers-color-scheme: dark) {
             body { background: radial-gradient(circle at top, #1c1c1e 0, #000 55%); }
-
             .table-card {
                 background: #121212;
                 border-color: #333;
             }
-
             .table th,
             .table td {
                 background: #1e1e1e !important;
                 color: #e0e0e0 !important;
                 border-bottom-color: #333 !important;
             }
-
             /* Override pandas day-of-week inline background colors */
             .table tr[style*="background-color"],
             .table td[style*="background-color"] {
                 background-color: #1e1e1e !important;
             }
-
             .table th {
                 background: #2a2a2a !important;
                 color: #ffffff !important;
             }
-
             .table tbody tr:hover {
                 background: #2c3e50 !important; /* dark muted hover */
             }
-
             .table-footer {
                 background: #1e1e1e;
                 color: #cccccc;
                 border-top-color: #333;
             }
-
             .search-input {
                 background: #2a2a2a;
                 color: #e0e0e0;
                 border-color: #444;
             }
-
             .search-input:focus {
                 border-color: var(--accent);
                 box-shadow: 0 0 0 3px rgba(10,132,255,0.3);
             }
-
             .instructor-select {
                 background: #2a2a2a;
                 border-color: #444;
             }
-            .instructor-select select {
-                color: #e0e0e0;
+            .instructor-select select,
+            .instructor-select select option {
+                color: #ffffff !important;           /* ← white text for dropdown items */
+                background: #2a2a2a !important;      /* dark background */
+            }
+            .instructor-select select option:checked,
+            .instructor-select select option:hover {
+                background: #3a3a3c !important;      /* slightly lighter when selected/hovered */
+                color: #ffffff !important;
             }
         }
 
@@ -357,9 +338,7 @@
     </style>
 </head>
 <body>
-
 <div id="pullLoader"><div class="pull-spinner"></div></div>
-
 <header class="frosted-header">
     <div class="header-inner">
         <h1>Student Heads Up Report</h1>
@@ -372,9 +351,7 @@
         {% endif %}
     </div>
 </header>
-
 <div class="container">
-
     <div class="logo-container">
         <img src="{{ url_for('static', filename='logo.png') }}"
              alt="Student Heads Up Report Logo"
@@ -387,7 +364,6 @@
             Oak Brook Area • Midway • Lake County
         </div>
     </div>
-
     {% if table_html %}
     <div class="controls-row">
         <div class="instructor-select">
@@ -400,7 +376,6 @@
                 {% endfor %}
             </select>
         </div>
-
         <div class="search-bar-wrapper">
             <input type="text" id="searchInput" class="search-input" placeholder="Search table…">
         </div>
@@ -418,7 +393,6 @@
             </select>
         </div>
     </div>
-
     <div style="max-width: 720px; margin: 48px auto; text-align: center; color: var(--text-light); font-size: 16px;">
         <h2 style="color: var(--text); font-size: 32px; margin-bottom: 28px;">Instructor Student Heads-Up</h2>
         <p style="margin-bottom: 28px;">
@@ -444,7 +418,6 @@
         </p>
     </div>
     {% endif %}
-
     {% if table_html %}
     <div id="exportArea" data-instructor="{{ instructor }}">
         <div class="export-header" style="text-align: center; margin-bottom: 24px;">
@@ -457,29 +430,23 @@
                 {{ table_html | safe }}
             </div>
         </div>
-
         <div id="tableFooter" class="table-footer">
             <!-- Filled by JS -->
         </div>
-
         <div id="noResults" class="no-results" style="display:none;">No matches found.</div>
     </div>
     {% endif %}
-
 </div>
-
 <script>
 // Pull-to-refresh
 let pullStartY = null;
 let pullDist = 0;
 const pullThreshold = 100;
 const pullLoader = document.getElementById('pullLoader');
-
 window.addEventListener('touchstart', e => {
     if (window.scrollY !== 0) return;
     pullStartY = e.touches[0].clientY;
 }, { passive: false });
-
 window.addEventListener('touchmove', e => {
     if (!pullStartY) return;
     pullDist = e.touches[0].clientY - pullStartY;
@@ -489,7 +456,6 @@ window.addEventListener('touchmove', e => {
         e.preventDefault();
     }
 }, { passive: false });
-
 window.addEventListener('touchend', () => {
     if (pullDist > pullThreshold) {
         pullLoader.style.top = '80px';
@@ -501,7 +467,6 @@ window.addEventListener('touchend', () => {
     pullStartY = null;
     pullDist = 0;
 });
-
 // Excel export
 function exportToExcel() {
     const table = document.querySelector('.table');
@@ -512,27 +477,22 @@ function exportToExcel() {
     XLSX.writeFile(wb, `${safeName}_student_heads_up_report.xlsx`);
 }
 document.getElementById('exportExcelBtn')?.addEventListener('click', exportToExcel);
-
 // PNG export
 function initExport() {
     const exportPngBtn = document.getElementById('exportPngBtn');
     const exportArea = document.getElementById('exportArea');
     const exportTimestampLine = document.getElementById('exportTimestampLine');
     if (!exportPngBtn || !exportArea) return;
-
     exportPngBtn.addEventListener('click', () => {
         const timestamp = "Exported: " + new Date().toLocaleString("en-US", { timeZone: "America/Chicago" });
         exportTimestampLine.textContent = timestamp;
-
         const toHide = [
             document.querySelector('header'),
             document.querySelector('.controls-row'),
         ].filter(Boolean);
-
         toHide.forEach(el => el.style.visibility = 'hidden');
         const originalBg = document.body.style.background;
         document.body.style.background = '#ffffff';
-
         html2canvas(exportArea, {
             scale: 2,
             useCORS: true,
@@ -552,33 +512,27 @@ function initExport() {
         });
     });
 }
-
 // Table features: search + footer with totals
 function initTableFeatures() {
     const table = document.querySelector('.table');
     if (!table) return;
-
     const tbody = table.tBodies[0];
     const footer = document.getElementById('tableFooter');
     const noResults = document.getElementById('noResults');
-
     function updateFooter() {
         const rows = Array.from(tbody.rows);
         const total = rows.length;
         const visible = rows.filter(r => r.style.display !== 'none').length;
-
         if (footer) {
             footer.innerHTML = `
                 <span>Total rows: ${total}</span>
                 <span>Showing: ${visible} ${visible === 1 ? 'entry' : 'entries'}</span>
             `;
         }
-
         if (noResults) {
             noResults.style.display = visible === 0 ? 'block' : 'none';
         }
     }
-
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('input', () => {
@@ -589,10 +543,8 @@ function initTableFeatures() {
             updateFooter();
         });
     }
-
     updateFooter();
 }
-
 window.addEventListener('load', () => {
     initTableFeatures();
     initExport();
