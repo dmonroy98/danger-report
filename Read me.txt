@@ -5,3 +5,35 @@
 2. source venv/Scripts/activate
 3. pip install -r requirements.txt
 4. python app.py
+
+
+
+git status                 # see what changed
+git add app.py             # stage the file
+git commit -m "Improve sorting: day + actual time parsing instead of string sort"
+git push origin staging    # push to remote staging branch
+
+
+# Danger Report (Student Heads Up)
+
+Flask app that generates student attention reports from Excel sheets per instructor.
+
+## Features
+- Instructor selector
+- Table with student/class data
+- Sorting by day + time
+- Search, export PNG/Excel
+- Day-based row coloring
+
+## Tech Stack
+- Python/Flask
+- Pandas + openpyxl (Excel reading)
+- Jinja2 templates
+- Deployed on Render
+
+## Local Setup
+```bash
+python -m venv venv
+source venv/bin/activate  # or venv\Scripts\activate on Windows
+pip install -r requirements.txt
+python app.py
